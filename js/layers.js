@@ -1,7 +1,7 @@
 addLayer("mem", {
     name: "Memories", // This is optional, only used in a few places, If absent it just uses the layer id.
     symbol: "M", // This appears on the layer's node. Default is the id with the first letter capitalized
-    position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
         unlocked: true,
 		points: new Decimal(0),
@@ -18,7 +18,7 @@ addLayer("mem", {
         if (hasUpgrade('mem', 12)) mult = mult.times(upgradeEffect('mem', 12))
         if (hasUpgrade('mem', 24)) mult = mult.times(upgradeEffect('mem', 24))
         if (hasUpgrade('mem', 33)) mult = mult.pow(1.5)
-        if (hasUpgrade('mem', 34)) mult = mult.times(0.85)
+        if (hasUpgrade('mem', 34)) mult = mult.times(!hasUpgrade('light', 11)?0.85:0.9)
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -136,9 +136,10 @@ addLayer("light", {
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
+        unlockOrder:0,
     }},
     color: "#ededed",
-    requires(){return new Decimal(1e9).times((player.dark.unlockOrder&&!player.dark.unlocked)?5000:1)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(1e9).times((player.light.unlockOrder&&!player.light.unlocked)?5000:1)}, // Can be a function that takes requirement increases into account
     resource: "Light Tachyons", // Name of prestige currency
     baseResource: "Memories", // Name of resource prestige is based on
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
@@ -154,6 +155,7 @@ addLayer("light", {
         return exp
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
+    displayRow: 0,
     hotkeys: [
         {key: "l", description: "L: Reset for Light Tachyons", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
@@ -172,20 +174,24 @@ addLayer("light", {
     },
 
     upgrades:{
-        
+        11:{ title: "Optimistic Thoughts",
+        description: "Conclusion decreases Memories gain less.",
+        cost: new Decimal(1),
+        },
     }
 })
 
 addLayer("dark", {
     name: "Dark Matters", // This is optional, only used in a few places, If absent it just uses the layer id.
     symbol: "D", // This appears on the layer's node. Default is the id with the first letter capitalized
-    position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    position: 2, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
+        unlockOrder:0,
     }},
-    color: "#ededed",
-    requires(){return new Decimal(29997).times((player.light.unlockOrder&&!player.light.unlocked)?99:1)}, // Can be a function that takes requirement increases into account
+    color: "#383838",
+    requires(){return new Decimal(29997).times((player.dark.unlockOrder&&!player.dark.unlocked)?99:1)}, // Can be a function that takes requirement increases into account
     resource: "Dark Matters", // Name of prestige currency
     baseResource: "Fragments", // Name of resource prestige is based on
     baseAmount() {return player.points}, // Get the current amount of baseResource
@@ -201,6 +207,7 @@ addLayer("dark", {
         return exp
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
+    displayRow: 0,
     hotkeys: [
         {key: "d", description: "D: Reset for Dark Matters", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
@@ -208,15 +215,6 @@ addLayer("dark", {
     increaseUnlockOrder: ["light"],
 
     upgrades:{
-        11:{ title: "Thought Collect",
-        description: "Speed up collecting your Fragments.",
-        cost: new Decimal(1),
-        effect() {
-            let eff=new Decimal(1.5);
-            if (hasUpgrade('mem', 21)) eff=eff.pow(upgradeEffect('mem', 21));
-            return eff;
-        }
-        },
         
     }
 })
