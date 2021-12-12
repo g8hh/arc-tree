@@ -26,8 +26,9 @@ addLayer("mem", {
     ],
     layerShown(){return true},
     upgrades:{
-        11:{
-
-        }
+        11:{ title: "Make this whatever you want!",
+        description: "Double your point gain.",
+        cost: new Decimal(1),
+        },
     }
 })
