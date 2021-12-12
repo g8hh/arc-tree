@@ -2,7 +2,7 @@ let modInfo = {
 	name: "Seeking of a world",
 	id: "cyxwmoddingtree",
 	author: "cyxw",
-	pointsName: "fragments",
+	pointsName: "Fragments",
 	modFiles: ["layers.js", "tree.js"],
 
 	discordName: "",
