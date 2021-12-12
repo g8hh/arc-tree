@@ -39,12 +39,18 @@ function canGenPoints(){
 
 // Calculate points/sec!
 function getPointGen() {
-	if (hasUpgrade('p', 11)) gain = gain.times(2)
-	
 	if(!canGenPoints())
 		return new Decimal(0)
 
 	let gain = new Decimal(1)
+
+	if (hasUpgrade('mem', 11)) gain = gain.times(upgradeEffect('mem', 11))
+	if (hasUpgrade('mem', 14)) gain = gain.times(upgradeEffect('mem', 14))
+	if (hasUpgrade('mem', 22)) gain = gain.times(upgradeEffect('mem', 22))
+	if (hasUpgrade('mem', 33)) gain = gain.pow(0.5)
+
+	if (player.light.unlocked) gain = gain.times(tmp.light.effect);
+
 	return gain
 }
 
