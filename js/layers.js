@@ -39,6 +39,7 @@ addLayer("mem", {
         let dark23=[34];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
         if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades=dark23;
+        if (hasAchievement("a", 13)) player[this.layer].startData.points=new Decimal(5);
     },
 
     upgrades:{
@@ -277,6 +278,16 @@ addLayer("a", {
             name: "An Essence of the Broken World",
             done() { return player.mem.points.gte(100) },
             tooltip: "Gain 100 Memories.<br>Rewards:Fragments generation is a little faster.",
+        },
+        12: {
+            name: "A Stuck",
+            done() { return player.points.gte(9999) },
+            tooltip: "Gain 9999 Fragments.",
+        },
+        13: {
+            name: "A Stuck For Sure",
+            done() { return player.points.gte(9999)&&hasUpgrade("mem",33)},
+            tooltip: "Gain 9999 Fragments With Memory Upgrade Directly Transfer.Rewards:You start at 5 Memories when reset.",
         },
     },
     tabFormat: [
