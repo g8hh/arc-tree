@@ -128,14 +128,16 @@ addLayer("mem", {
         unlocked() { return hasUpgrade("mem", 31) },
         },
         33:{ title: "Directly Transfer",
-        description: "Memories gain is massively boosted, but with Fragments gain massively decreased.",
+        description: "Memories gain is massively boosted, but with Fragments gain massively decreased and Fragments&Memories set to 1.",
         cost: new Decimal(500000),
         unlocked() { return hasUpgrade("mem", 32) },
+        onPurchase(){player.points=new Decimal(1);player[this.layer].points = new Decimal(1);},
         },
         34:{ title: "Conclusion",
-        description: "Unlock two new layers, but with Memories gain decreased.",
+        description: "Unlock two new layers, but with Memories gain decreased and Fragments&Memories set to 1.",
         cost: new Decimal(10000000),
         unlocked() { return (hasUpgrade("mem", 33)||hasUpgrade("dark",23))},
+        onPurchase(){player.points=new Decimal(1);player[this.layer].points = new Decimal(1);},
         },
     }
 })
@@ -150,7 +152,7 @@ addLayer("light", {
         unlockOrder:0,
     }},
     color: "#ededed",
-    requires(){return new Decimal(1e9).times((player.light.unlockOrder&&!player.light.unlocked)?5000:1)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(2e8).times((player.light.unlockOrder&&!player.light.unlocked)?500:1)}, // Can be a function that takes requirement increases into account
     resource: "Light Tachyons", // Name of prestige currency
     baseResource: "Memories", // Name of resource prestige is based on
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
@@ -159,11 +161,12 @@ addLayer("light", {
     exponent: 0.5, // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1);
-        if (hasUpgrade("light", 13)) mult=mult.times(tmp.light.effect.pow(0.25))
+        if (hasUpgrade("light", 13)) mult=mult.times(tmp.light.effect.pow(0.15))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         exp = new Decimal(1)
+        if (player[this.layer].points.gte(5)) exp = new Decimal(1.5);
         return exp
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
@@ -223,7 +226,7 @@ addLayer("dark", {
         unlockOrder:0,
     }},
     color: "#383838",
-    requires(){return new Decimal(29997).times((player.dark.unlockOrder&&!player.dark.unlocked)?99:1)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(9999).times((player.dark.unlockOrder&&!player.dark.unlocked)?9:1)}, // Can be a function that takes requirement increases into account
     resource: "Dark Matters", // Name of prestige currency
     baseResource: "Fragments", // Name of resource prestige is based on
     baseAmount() {return player.points}, // Get the current amount of baseResource
@@ -236,8 +239,9 @@ addLayer("dark", {
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
-        exp = new Decimal(1)
-        return exp
+        exp = new Decimal(1);
+        if (player[this.layer].points.gte(5)) exp = new Decimal(1.5);
+        return exp;
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
     displayRow: 0,
@@ -305,12 +309,12 @@ addLayer("a", {
             tooltip: "Gain 100 Memories.<br>Rewards:Fragments generation is a little faster.",
         },
         12: {
-            name: "A Stuck",
+            name: "A Stack",
             done() { return player.points.gte(9999) },
             tooltip: "Gain 9999 Fragments.",
         },
         13: {
-            name: "Two Stucks For Sure",
+            name: "Two Stacks For Sure",
             done() { return player.points.gte(19998)&&hasUpgrade("mem",33)},
             tooltip: "Gain 19998 Fragments With Directly Transfer.Rewards:You start at 5 Memories when reset.",
         },
