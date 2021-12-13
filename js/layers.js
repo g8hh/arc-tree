@@ -232,6 +232,7 @@ addLayer("dark", {
     exponent: 0.5, // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
+        if (hasUpgrade("dark", 13)) mult=mult.times(tmp.dark.effect.pow(0.75))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -274,6 +275,11 @@ addLayer("dark", {
         description: "Dark Matters also effects Fragments generation at a reduced rate.",     
         unlocked() { return hasUpgrade("dark", 11) },
         cost: new Decimal(3),
+        },
+        13:{ title: "Crack Everything",
+        description: "Dark Matters also effects its own gain at a reduced rate.",
+        unlocked() { return hasUpgrade("dark", 12) },
+        cost: new Decimal(5),
         },
         23:{ title: "Force Operation",
         description: "You can keep Conclusion upgrade when L or D reset.",
