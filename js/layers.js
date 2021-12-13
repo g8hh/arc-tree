@@ -20,7 +20,7 @@ addLayer("mem", {
         if (hasUpgrade('mem', 33)) mult = mult.pow(1.5)
         if (hasUpgrade('mem', 34)) mult = mult.times(!hasUpgrade('light', 11)?0.85:0.9)
         if (player.dark.unlocked) mult = mult.times(tmp.dark.effect);
-        if (hasUpgrade('light', 12)) mult=mut.times(tmp.light.effect.div(2).gt(1)?tmp.light.effect.div(2):1);
+        if (hasUpgrade('light', 12)) mult=mult.times(tmp.light.effect.div(2).gt(1)?tmp.light.effect.div(2):1);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -177,6 +177,7 @@ addLayer("light", {
         return base;
     },
     effect(){
+        if (player[this.layer].points.lte(0)) return new Decimal(1);
         let eff=Decimal.times(tmp.light.effectBase,player.light.points.plus(1));
         if (eff.lt(1)) return 1;
         return eff;
