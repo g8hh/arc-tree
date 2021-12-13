@@ -159,7 +159,7 @@ addLayer("light", {
     hotkeys: [
         {key: "l", description: "L: Reset for Light Tachyons", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
-    layerShown(){return hasUpgrade('mem', 34)||player.light.unlocked},
+    layerShown(){return hasUpgrade('mem', 34)},
     increaseUnlockOrder: ["dark"],
 
     effectBase(){
@@ -211,9 +211,18 @@ addLayer("dark", {
     hotkeys: [
         {key: "d", description: "D: Reset for Dark Matters", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
-    layerShown(){return hasUpgrade('mem', 34)||player.dark.unlocked},
+    layerShown(){return hasUpgrade('mem', 34)},
     increaseUnlockOrder: ["light"],
-
+    effectBase(){
+        let base = new Decimal(1.5);
+        return base;
+    },
+    effect(){
+        return Decimal.pow(player.dark.points.log10().plus(1),tmp.dark.effectBase)
+    },
+    effectDescription() {
+        return "which are boosting Memories gain by "+format(tmp.dark.effect)+"x"
+    },
     upgrades:{
         
     }
