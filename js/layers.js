@@ -36,9 +36,9 @@ addLayer("mem", {
 
     doReset(resettingLayer){
         let keep=[];
-        let dark11=[34];
+        let dark23=[34];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
-        if (hasUpgrade('dark', 11)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades=dark11;
+        if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades=dark23;
     },
 
     upgrades:{
@@ -134,7 +134,7 @@ addLayer("mem", {
         34:{ title: "Conclusion",
         description: "Unlock two new layers, but with Memories gain decreased.",
         cost: new Decimal(10000000),
-        unlocked() { return (hasUpgrade("mem", 33)||hasUpgrade("dark",11))},
+        unlocked() { return (hasUpgrade("mem", 33)||hasUpgrade("dark",23))},
         },
     }
 })
@@ -188,10 +188,12 @@ addLayer("light", {
     upgrades:{
         11:{ title: "Optimistic Thoughts",
         description: "Conclusion decreases Memories gain less.",
+        unlocked() { return player.light.unlocked },
         cost: new Decimal(1),
         },
         12:{ title: "Wandering For Beauty",
         description: "Light Tachyons also effects Memories gain at a reduced rate.",
+        unlocked() { return hasUpgrade("light", 11) },
         cost: new Decimal(3),
         },
     }
@@ -234,7 +236,7 @@ addLayer("dark", {
         return base;
     },
     effect(){
-        let eff=Decimal.pow(player[this.layer].points.plus(1).log10(),tmp.dark.effectBase);
+        let eff=Decimal.pow(player[this.layer].points.plus(1).log10().plus(1),tmp.dark.effectBase);
         if (eff.lt(1)) return new Decimal(1);
         return eff;
     },
@@ -242,13 +244,19 @@ addLayer("dark", {
         return "which are boosting Memories gain by "+format(tmp.dark.effect)+"x"
     },
     upgrades:{
-        11:{ title: "Force Operation",
-        description: "You can keep Conclusion upgrade when L or D reset.",
+        11:{ title: "Overclock",
+        description: "Your Fragments generation is doubled when under 9999",
+        unlocked() { return player.dark.unlocked },
         cost: new Decimal(1),
         },
         12:{ title: "Seeking For Other Sides",
-        description: "Dark Matters also effects Fragments generation at a reduced rate.",
+        description: "Dark Matters also effects Fragments generation at a reduced rate.",     
+        unlocked() { return hasUpgrade("dark", 11) },
         cost: new Decimal(3),
+        },
+        23:{ title: "Force Operation",
+        description: "You can keep Conclusion upgrade when L or D reset.",
+        cost: new Decimal(100),
         },
     }
 })
