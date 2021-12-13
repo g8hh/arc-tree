@@ -39,7 +39,7 @@ addLayer("mem", {
         let dark23=[34];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
         if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades=dark23;
-        if (hasAchievement("a", 13)) player[this.layer].startData.points=new Decimal(5);
+        if (hasAchievement("a", 13)&&player[this.layer].points.eq(0)) player[this.layer].points=new Decimal(5);
     },
 
     upgrades:{
@@ -122,7 +122,7 @@ addLayer("mem", {
             return player[this.layer].points.plus(1).log10().pow(0.5).log10(2);
         }
         },
-        32:{ title: "Memory inflation",
+        32:{ title: "Memory Inflation",
         description: "Memory Extraction is much faster.",
         cost: new Decimal(50000),
         unlocked() { return hasUpgrade("mem", 31) },
@@ -158,7 +158,8 @@ addLayer("light", {
     branches: ["mem"],
     exponent: 0.5, // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
-        mult = new Decimal(1)
+        mult = new Decimal(1);
+        if (hasUpgrade("light", 13)) mult=mult.times(tmp.light.effect.pow(0.25))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -172,6 +173,12 @@ addLayer("light", {
     ],
     layerShown(){return hasUpgrade('mem', 34)},
     increaseUnlockOrder: ["dark"],
+
+    doReset(resettingLayer){
+        let keep=[];
+        if (layers[resettingLayer].row > this.row) layerDataReset('light', keep);
+        if (player.tab=='light'&&!hasUpgrade('dark', 23)) showTab('none');
+    },
 
     effectBase(){
         let base = new Decimal(1.5);
@@ -197,6 +204,11 @@ addLayer("light", {
         description: "Light Tachyons also effects Memories gain at a reduced rate.",
         unlocked() { return hasUpgrade("light", 11) },
         cost: new Decimal(3),
+        },
+        13:{ title: "Experiencing Happiness",
+        description: "Light Tachyons also effects its own gain at a reduced rate.",
+        unlocked() { return hasUpgrade("light", 12) },
+        cost: new Decimal(5),
         },
     }
 })
@@ -233,6 +245,13 @@ addLayer("dark", {
     ],
     layerShown(){return hasUpgrade('mem', 34)},
     increaseUnlockOrder: ["light"],
+
+    doReset(resettingLayer){
+        let keep=[];
+        if (layers[resettingLayer].row > this.row) layerDataReset('dark', keep);
+        if (player.tab=='dark'&&!hasUpgrade('dark', 23)) showTab('none');
+    },
+
     effectBase(){
         let base = new Decimal(1.5);
         return base;
@@ -285,9 +304,9 @@ addLayer("a", {
             tooltip: "Gain 9999 Fragments.",
         },
         13: {
-            name: "A Stuck For Sure",
-            done() { return player.points.gte(9999)&&hasUpgrade("mem",33)},
-            tooltip: "Gain 9999 Fragments With Memory Upgrade Directly Transfer.Rewards:You start at 5 Memories when reset.",
+            name: "Two Stucks For Sure",
+            done() { return player.points.gte(19998)&&hasUpgrade("mem",33)},
+            tooltip: "Gain 19998 Fragments With Directly Transfer.Rewards:You start at 5 Memories when reset.",
         },
     },
     tabFormat: [
