@@ -152,13 +152,14 @@ addLayer("light", {
         unlockOrder:0,
     }},
     color: "#ededed",
-    requires(){return new Decimal(2e8).times((player.light.unlockOrder&&!player.light.unlocked)?500:1)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(2e8).times((player.light.unlockOrder&&!player.light.unlocked)?100:1)}, // Can be a function that takes requirement increases into account
     resource: "Light Tachyons", // Name of prestige currency
     baseResource: "Memories", // Name of resource prestige is based on
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
     type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["mem"],
     exponent: 0.5, // Prestige currency exponent
+    base:1.5,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1);
         if (hasUpgrade("light", 13)) mult=mult.times(tmp.light.effect.pow(0.15))
@@ -226,13 +227,14 @@ addLayer("dark", {
         unlockOrder:0,
     }},
     color: "#383838",
-    requires(){return new Decimal(9999).times((player.dark.unlockOrder&&!player.dark.unlocked)?9:1)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(9999).times((player.dark.unlockOrder&&!player.dark.unlocked)?5:1)}, // Can be a function that takes requirement increases into account
     resource: "Dark Matters", // Name of prestige currency
     baseResource: "Fragments", // Name of resource prestige is based on
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["mem"],
     exponent: 0.5, // Prestige currency exponent
+    base:1.5,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
         if (hasUpgrade("dark", 13)) mult=mult.times(tmp.dark.effect.pow(0.75))
