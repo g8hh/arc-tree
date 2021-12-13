@@ -263,7 +263,13 @@ addLayer("a", {
     tooltip() { // Optional, tooltip displays when the layer is locked
         return ("Achievements")
     },
-    achievements: {},
+    achievements: {
+        11: {
+            name: "An Essence of the Broken World",
+            done() { return player.mem.points.gte(100) },
+            tooltip: "Gain 100 Memories.<br>Rewards:Fragments generation is a little faster.",
+        },
+    },
     tabFormat: [
         "blank", 
         ["display-text", function() { return "Achievements: "+player.a.achievements.length+"/"+(Object.keys(tmp.a.achievements).length-2) }], 

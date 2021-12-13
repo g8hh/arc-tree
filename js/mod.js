@@ -44,6 +44,11 @@ function getPointGen() {
 
 	let gain = new Decimal(1)
 
+	//ADD
+	if (hasAchievement("a", 11)) gain=gain.add(0.5);
+
+
+	//MULT
 	if (hasUpgrade('mem', 11)) gain = gain.times(upgradeEffect('mem', 11))
 	if (hasUpgrade('mem', 14)) gain = gain.times(upgradeEffect('mem', 14))
 	if (hasUpgrade('mem', 22)) gain = gain.times(upgradeEffect('mem', 22))
