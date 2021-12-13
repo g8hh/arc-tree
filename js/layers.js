@@ -20,6 +20,7 @@ addLayer("mem", {
         if (hasUpgrade('mem', 33)) mult = mult.pow(1.5)
         if (hasUpgrade('mem', 34)) mult = mult.times(!hasUpgrade('light', 11)?0.85:0.9)
         if (player.dark.unlocked) mult = mult.times(tmp.dark.effect);
+        if (hasUpgrade('light', 12)) mult=mut.times(tmp.light.effect.div(2).gt(1)?tmp.light.effect.div(2):1);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -117,7 +118,7 @@ addLayer("mem", {
         cost: new Decimal(20000),
         unlocked() { return hasUpgrade("mem", 24) },
         effect() {
-            return player[this.layer].points.log10().pow(0.5).log10(2).plus(1);
+            return player[this.layer].points.plus(1).log10().pow(0.5).log10(2);
         }
         },
         32:{ title: "Memory inflation",
@@ -176,7 +177,9 @@ addLayer("light", {
         return base;
     },
     effect(){
-        return Decimal.times(tmp.light.effectBase,player.light.points.plus(1))
+        let eff=Decimal.times(tmp.light.effectBase,player.light.points.plus(1));
+        if (eff.lt(1)) return 1;
+        return eff;
     },
     effectDescription() {
         return "which are boosting Fragments generation by "+format(tmp.light.effect)+"x"
@@ -186,6 +189,10 @@ addLayer("light", {
         11:{ title: "Optimistic Thoughts",
         description: "Conclusion decreases Memories gain less.",
         cost: new Decimal(1),
+        },
+        12:{ title: "Wandering For Beauty",
+        description: "Light Tachyons also effects Memories gain at a reduced rate.",
+        cost: new Decimal(3),
         },
     }
 })
@@ -227,15 +234,41 @@ addLayer("dark", {
         return base;
     },
     effect(){
-        return Decimal.pow(player.dark.points.log10().plus(1),tmp.dark.effectBase)
+        let eff=Decimal.pow(player[this.layer].points.plus(1).log10(),tmp.dark.effectBase);
+        if (eff.lt(1)) return new Decimal(1);
+        return eff;
     },
     effectDescription() {
         return "which are boosting Memories gain by "+format(tmp.dark.effect)+"x"
     },
     upgrades:{
         11:{ title: "Force Operation",
-        description: "You can keep Conclusion upgrade when reset.",
+        description: "You can keep Conclusion upgrade when L or D reset.",
         cost: new Decimal(1),
+        },
+        12:{ title: "Seeking For Other Sides",
+        description: "Dark Matters also effects Fragments generation at a reduced rate.",
+        cost: new Decimal(3),
         },
     }
 })
+
+addLayer("a", {
+    startData() { return {
+        unlocked: true,
+    }},
+    color: "yellow",
+    row: "side",
+    layerShown() {return true}, 
+    tooltip() { // Optional, tooltip displays when the layer is locked
+        return ("Achievements")
+    },
+    achievements: {},
+    tabFormat: [
+        "blank", 
+        ["display-text", function() { return "Achievements: "+player.a.achievements.length+"/"+(Object.keys(tmp.a.achievements).length-2) }], 
+        "blank", "blank",
+        "achievements",
+    ],
+}, 
+)

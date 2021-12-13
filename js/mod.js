@@ -50,6 +50,7 @@ function getPointGen() {
 	if (hasUpgrade('mem', 33)) gain = gain.pow(0.5)
 
 	if (player.light.unlocked) gain = gain.times(tmp.light.effect);
+	if (hasUpgrade('dark', 12))gain = gain.times(tmp.dark.effect.pow(0.5));
 
 	return gain
 }
