@@ -32,6 +32,14 @@ addLayer("mem", {
         {key: "m", description: "M: Reset for Memories", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return true},
+
+    doReset(resettingLayer){
+        let keep=[];
+        let dark11=[34];
+        if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
+        if (hasUpgrade('dark', 11)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades=dark11;
+    },
+
     upgrades:{
         11:{ title: "Thought Collect",
         description: "Speed up collecting your Fragments.",
@@ -125,7 +133,7 @@ addLayer("mem", {
         34:{ title: "Conclusion",
         description: "Unlock two new layers, but with Memories gain decreased.",
         cost: new Decimal(10000000),
-        unlocked() { return hasUpgrade("mem", 33) },
+        unlocked() { return (hasUpgrade("mem", 33)||hasUpgrade("dark",11))},
         },
     }
 })
@@ -225,6 +233,9 @@ addLayer("dark", {
         return "which are boosting Memories gain by "+format(tmp.dark.effect)+"x"
     },
     upgrades:{
-        
+        11:{ title: "Force Operation",
+        description: "You can keep Conclusion upgrade when reset.",
+        cost: new Decimal(1),
+        },
     }
 })
