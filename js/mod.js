@@ -53,13 +53,13 @@ function getPointGen() {
 	if (hasUpgrade('mem', 14)) gain = gain.times(upgradeEffect('mem', 14))
 	if (hasUpgrade('mem', 22)) gain = gain.times(upgradeEffect('mem', 22))	
 	if (player.light.unlocked) gain = gain.times(tmp.light.effect);
-	if (hasUpgrade('dark', 11)&&player.points.lt(9999)) gain = gain.times(2);
 	
 	//POW
 	if (hasUpgrade('dark', 12))gain = gain.times(tmp.dark.effect.pow(0.5));
 	if (hasUpgrade('mem', 33)) gain = gain.pow(0.5)
 
-	return gain
+	if (hasUpgrade('dark', 11)&&player.points.lt(9999)) gain = gain.times(2);
+        return gain
 }
 
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
