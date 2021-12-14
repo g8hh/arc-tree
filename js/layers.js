@@ -6,6 +6,7 @@ addLayer("mem", {
         unlocked: true,
 		points: new Decimal(0),
     }},
+    unlockOrder(){return (hasAchievement('a',14)?0:player[this.layer].unlockOrder);},
     color: "#c939db",
     requires: new Decimal(15), // Can be a function that takes requirement increases into account
     resource: "Memories", // Name of prestige currency
@@ -160,6 +161,7 @@ addLayer("light", {
 		points: new Decimal(0),
         unlockOrder() {return 0},
     }},
+    unlockOrder(){return (hasAchievement('a',14)?0:player[this.layer].unlockOrder);},
     color: "#ededed",
     requires(){return new Decimal(2e8).times((player.light.unlockOrder&&!player.light.unlocked)?100:1)}, // Can be a function that takes requirement increases into account
     resource: "Light Tachyons", // Name of prestige currency
@@ -175,9 +177,9 @@ addLayer("light", {
     base:1.75,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1);
-        if (hasUpgrade("light", 13)) mult=mult.times(tmp.light.effect.pow(0.15));
-        if (hasUpgrade("light", 14)) mult=mult.times(upgradeEffect('light', 14));
-        if (hasUpgrade("dark", 24)) mult=mult.times(tmp.dark.effect);
+        if (hasUpgrade("light", 13)) mult=mult.div(tmp.light.effect.pow(0.15));
+        if (hasUpgrade("light", 14)) mult=mult.div(upgradeEffect('light', 14));
+        if (hasUpgrade("dark", 24)) mult=mult.div(tmp.dark.effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -287,9 +289,9 @@ addLayer("dark", {
     base:1.75,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
-        if (hasUpgrade("dark", 13)) mult=mult.times(tmp.dark.effect.pow(0.5));
-        if (hasUpgrade("dark", 14)) mult=mult.times(upgradeEffect('dark', 14));
-        if (hasUpgrade("light", 24)) mult=mult.times(tmp.light.effect);
+        if (hasUpgrade("dark", 13)) mult=mult.div(tmp.dark.effect.pow(0.5));
+        if (hasUpgrade("dark", 14)) mult=mult.div(upgradeEffect('dark', 14));
+        if (hasUpgrade("light", 24)) mult=mult.div(tmp.light.effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
