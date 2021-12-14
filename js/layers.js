@@ -13,14 +13,21 @@ addLayer("mem", {
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.45, // Prestige currency exponent
-    softcap: new Decimal("1e10"),
-    softcapPower: 0.25,
+    softcap() {
+        let sc = new Decimal("1e10");
+        if (hasUpgrade('dark',21)) sc=sc.times(50);
+        return sc;
+    },
+    softcapPower() {
+        if (hasUpgrade('light',21)) return 0.33;
+        return 0.25;
+    },
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
         if (hasUpgrade('mem', 12)) mult = mult.times(upgradeEffect('mem', 12))
         if (hasUpgrade('mem', 24)) mult = mult.times(upgradeEffect('mem', 24))
         if (hasUpgrade('mem', 33)) mult = mult.pow(1.5)
-        if (hasUpgrade('mem', 34)) mult = mult.times(!hasUpgrade('light', 11)?0.85:0.9)
+        if (hasUpgrade('mem', 34)) mult = mult.times(!hasUpgrade('light', 11)?0.85:upgradeEffect('light', 11))
         if (player.dark.unlocked) mult = mult.times(tmp.dark.effect);
         if (hasUpgrade('light', 12)) mult=mult.times(tmp.light.effect.div(2).gt(1)?tmp.light.effect.div(2):1);
         return mult
@@ -160,12 +167,17 @@ addLayer("light", {
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
     type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["mem"],
-    exponent: 1.25, // Prestige currency exponent
+    exponent() {
+        let ex = new Decimal(1.25);
+        if (hasUpgrade('light', 22)) ex=ex.plus(-0.15);
+        return ex;
+    }, // Prestige currency exponent
     base:1.75,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1);
         if (hasUpgrade("light", 13)) mult=mult.times(tmp.light.effect.pow(0.15));
         if (hasUpgrade("light", 14)) mult=mult.times(upgradeEffect('light', 14));
+        if (hasUpgrade("dark", 24)) mult=mult.times(tmp.dark.effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -185,6 +197,7 @@ addLayer("light", {
         if (layers[resettingLayer].row > this.row) layerDataReset('light', keep);
         if (player.tab=='light'&&!hasUpgrade('dark', 23)) showTab('none');
     },
+    canBuyMax() { return hasUpgrade('light', 22) },
 
     effectBase(){
         let base = new Decimal(1.5);
@@ -204,6 +217,9 @@ addLayer("light", {
         11:{ title: "Optimistic Thoughts",
         description: "Conclusion decreases Memories gain less.",
         unlocked() { return player.light.unlocked },
+        effect() {
+            return (hasUpgrade('light',21))?new Decimal(0.95):new Decimal(0.9);
+        },
         cost: new Decimal(1),
         },
         12:{ title: "Wandering For Beauty",
@@ -224,6 +240,26 @@ addLayer("light", {
         },
         cost: new Decimal(8),
         },
+        21:{ title: "Seeking Delight.",
+        description: "Conclusion decreases Memories gain more less, and gain ^0.33 instead of ^0.25 Memories after softcap.",
+        unlocked() { return hasUpgrade("light", 14) },
+        cost: new Decimal(10),
+        },
+        22:{ title: "More Brightness",
+        description: "You can buy max Light Tachyons And lower Memories requirement for further Light Tachyons",
+        unlocked() { return hasUpgrade("light", 21) },
+        cost: new Decimal(15),
+        },
+        23:{ title: "Fragment Sympathy",
+        description: "Directly Transfer decreases Fragments gain less.",
+        unlocked() { return hasUpgrade("light", 22) },
+        cost: new Decimal(20),
+        },
+        24:{ title: "Sadness Overjoy",
+        description: "Light Tachyons also effects Dark Matters gain.",
+        unlocked() { return hasUpgrade("light", 23) },
+        cost: new Decimal(25),
+        },
     }
 })
 
@@ -243,12 +279,17 @@ addLayer("dark", {
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["mem"],
-    exponent: 1.25, // Prestige currency exponent
+    exponent() {
+        let ex = new Decimal(1.25);
+        if (hasUpgrade('light', 22)) ex=ex.plus(-0.15);
+        return ex;
+    },  // Prestige currency exponent
     base:1.75,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
         if (hasUpgrade("dark", 13)) mult=mult.times(tmp.dark.effect.pow(0.5));
         if (hasUpgrade("dark", 14)) mult=mult.times(upgradeEffect('dark', 14));
+        if (hasUpgrade("light", 24)) mult=mult.times(tmp.light.effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -268,6 +309,7 @@ addLayer("dark", {
         if (layers[resettingLayer].row > this.row) layerDataReset('dark', keep);
         if (player.tab=='dark'&&!hasUpgrade('dark', 23)) showTab('none');
     },
+    canBuyMax() { return hasUpgrade('dark', 22) },
 
     effectBase(){
         let base = new Decimal(1.5);
@@ -286,6 +328,11 @@ addLayer("dark", {
         description: "Your Fragments generation is doubled when under 9999",
         unlocked() { return player.dark.unlocked },
         cost: new Decimal(1),
+        effect() {
+            let eff = new Decimal(9999);
+            if (hasUpgrade('dark',21)) eff=eff.times(upgradeEffect('dark',21));
+            return eff;
+        },
         },
         12:{ title: "Seeking For Other Sides",
         description: "Dark Matters also effects Fragments generation at a reduced rate.",     
@@ -305,9 +352,28 @@ addLayer("dark", {
         },
         cost: new Decimal(8),
         },
+        21:{ title: "Power Override",
+        description: "Overclock ends at 19,998 and Memories softcap starts 50x later.",
+        unlocked() { return hasUpgrade("dark", 14) },
+        effect() {
+            return new Decimal(2);
+        },
+        cost: new Decimal(10),
+        },
+        22:{ title: "More Darkness",
+        description: "You can buy max Dark Matters And lower Fragments requirement for further Dark Matters",
+        unlocked() { return hasUpgrade("dark", 21) },
+        cost: new Decimal(15),
+        },
         23:{ title: "Force Operation",
-        description: "You can keep Conclusion upgrade when L or D reset.",
-        cost: new Decimal(100),
+        description: "Keep Conclusion upgrade when L or D reset.",
+        unlocked() { return hasUpgrade("dark", 22)&&hasUpgrade("light", 21) },
+        cost: new Decimal(20),
+        },
+        24:{ title: "Calm in Warth",
+        description: "Dark Matters also effects Light Tachyons gain.",
+        unlocked() { return hasUpgrade("dark", 23) },
+        cost: new Decimal(25),
         },
     }
 })
@@ -337,6 +403,11 @@ addLayer("a", {
             name: "Two Stacks For Sure",
             done() { return player.points.gte(19998)&&hasUpgrade("mem",33)},
             tooltip: "Gain 19998 Fragments With Directly Transfer.Rewards:You start at 5 Memories when reset.",
+        },
+        14: {
+            name: "Define Aspects.",
+            done() { return player.light.unlocked&&player.dark.unlocked},
+            tooltip: "Unlock Both Light And Dark Layers.<br>Rewards:They behave as they are unlocked first.",
         },
     },
     tabFormat: [

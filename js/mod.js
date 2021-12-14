@@ -56,9 +56,9 @@ function getPointGen() {
 	
 	//POW
 	if (hasUpgrade('dark', 12))gain = gain.times(tmp.dark.effect.pow(0.5));
-	if (hasUpgrade('mem', 33)) gain = gain.pow(0.5)
+	if (hasUpgrade('mem', 33)) gain = gain.pow(hasUpgrade('light', 23)?0.75:0.5);
 
-	if (hasUpgrade('dark', 11)&&player.points.lt(9999)) gain = gain.times(2);
+	if (hasUpgrade('dark', 11)&&player.points.lt(upgradeEffect('dark',11))) gain = gain.times(2);
         return gain
 }
 
