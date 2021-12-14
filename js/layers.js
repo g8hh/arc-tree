@@ -243,12 +243,12 @@ addLayer("dark", {
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["mem"],
-    exponent: 0.75, // Prestige currency exponent
-    base:2,
+    exponent: 1.25, // Prestige currency exponent
+    base:1.75,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
-        if (hasUpgrade("dark", 13)) mult=mult.times(tmp.dark.effect.pow(0.75));
-        if (hasUpgrade("dark", 14)) mult=mult.times(upgradeEffect('light', 14));
+        if (hasUpgrade("dark", 13)) mult=mult.times(tmp.dark.effect.pow(0.5));
+        if (hasUpgrade("dark", 14)) mult=mult.times(upgradeEffect('dark', 14));
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
