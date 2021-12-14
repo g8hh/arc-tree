@@ -1,6 +1,6 @@
 let modInfo = {
-	name: "Seeking of a world",
-	id: "cyxwmoddingtree",
+	name: "ArcTree",
+	id: "arctree",
 	author: "cyxw",
 	pointsName: "Fragments",
 	modFiles: ["layers.js", "tree.js"],
