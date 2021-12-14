@@ -131,7 +131,7 @@ addLayer("mem", {
         },
         33:{ title: "Directly Transfer",
         description: "Memories gain is massively boosted, but with Fragments gain massively decreased and Fragments&Memories set to 1.",
-        cost: new Decimal(500000),
+        cost: new Decimal(1000000),
         unlocked() { return hasUpgrade("mem", 32) },
         onPurchase(){player.points=new Decimal(1);player[this.layer].points = new Decimal(1);},
         },
@@ -169,8 +169,7 @@ addLayer("light", {
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
-        exp = new Decimal(1)
-        if (player[this.layer].points.gte(5)) exp = new Decimal(1.5);
+        exp = new Decimal(1);
         return exp
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
@@ -223,7 +222,7 @@ addLayer("light", {
         effect() {
             return player[this.layer].points.plus(1).log10().plus(1).pow(0.5);
         },
-        cost: new Decimal(10),
+        cost: new Decimal(8),
         },
     }
 })
@@ -254,7 +253,6 @@ addLayer("dark", {
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         exp = new Decimal(1);
-        if (player[this.layer].points.gte(5)) exp = new Decimal(1.5);
         return exp;
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
@@ -305,7 +303,7 @@ addLayer("dark", {
         effect() {
             return player[this.layer].points.plus(1).log10().plus(1).pow(0.5);
         },
-        cost: new Decimal(10),
+        cost: new Decimal(8),
         },
         23:{ title: "Force Operation",
         description: "You can keep Conclusion upgrade when L or D reset.",
