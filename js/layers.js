@@ -158,7 +158,7 @@ addLayer("light", {
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
-        unlockOrder:0,
+        unlockOrder() {return 0},
     }},
     color: "#ededed",
     requires(){return new Decimal(2e8).times((player.light.unlockOrder&&!player.light.unlocked)?100:1)}, // Can be a function that takes requirement increases into account
@@ -270,7 +270,7 @@ addLayer("dark", {
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
-        unlockOrder:0,
+        unlockOrder(){return 0},
     }},
     color: "#383838",
     requires(){return new Decimal(9999).times((player.dark.unlockOrder&&!player.dark.unlocked)?5:1)}, // Can be a function that takes requirement increases into account
