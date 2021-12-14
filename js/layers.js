@@ -13,6 +13,8 @@ addLayer("mem", {
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.45, // Prestige currency exponent
+    softcap: new Decimal("1e10"),
+    softcapPower: 0.25,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
         if (hasUpgrade('mem', 12)) mult = mult.times(upgradeEffect('mem', 12))
@@ -73,7 +75,7 @@ addLayer("mem", {
         },
         },
         14:{ title: "Fragments Duplication",
-        description: "Fragments gain is boosted by Fragments",
+        description: "Fragments generation is boosted by Fragments",
         cost: new Decimal(20),
         unlocked() { return hasUpgrade("mem", 13) },
         effect() {
@@ -91,7 +93,7 @@ addLayer("mem", {
         }
         },
         22:{ title: "Fragments Prediction",
-        description: "Fragments gain is boosted by Memories",
+        description: "Fragments generation is boosted by Memories",
         cost: new Decimal(50),
         unlocked() { return hasUpgrade("mem", 21) },
         effect() {
@@ -158,11 +160,12 @@ addLayer("light", {
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
     type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["mem"],
-    exponent: 0.5, // Prestige currency exponent
-    base:1.5,
+    exponent: 1.25, // Prestige currency exponent
+    base:1.75,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1);
-        if (hasUpgrade("light", 13)) mult=mult.times(tmp.light.effect.pow(0.15))
+        if (hasUpgrade("light", 13)) mult=mult.times(tmp.light.effect.pow(0.15));
+        if (hasUpgrade("light", 14)) mult=mult.times(upgradeEffect('light', 14));
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -214,6 +217,14 @@ addLayer("light", {
         unlocked() { return hasUpgrade("light", 12) },
         cost: new Decimal(5),
         },
+        14:{ title: "After That Butterfly",
+        description: "Light Tachyons itself boosts its own gain.",
+        unlocked() { return hasUpgrade("light", 13) },
+        effect() {
+            return player[this.layer].points.plus(1).log10().plus(1).pow(0.5);
+        },
+        cost: new Decimal(10),
+        },
     }
 })
 
@@ -234,10 +245,11 @@ addLayer("dark", {
     type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["mem"],
     exponent: 0.5, // Prestige currency exponent
-    base:1.5,
+    base:1.75,
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
-        if (hasUpgrade("dark", 13)) mult=mult.times(tmp.dark.effect.pow(0.75))
+        if (hasUpgrade("dark", 13)) mult=mult.times(tmp.dark.effect.pow(0.75));
+        if (hasUpgrade("dark", 14)) mult=mult.times(upgradeEffect('light', 14));
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -286,6 +298,14 @@ addLayer("dark", {
         description: "Dark Matters also effects its own gain at a reduced rate.",
         unlocked() { return hasUpgrade("dark", 12) },
         cost: new Decimal(5),
+        },
+        14:{ title: "Wrath In Calm",
+        description: "Dark Matters itself boosts its own gain.",
+        unlocked() { return hasUpgrade("dark", 13) },
+        effect() {
+            return player[this.layer].points.plus(1).log10().plus(1).pow(0.5);
+        },
+        cost: new Decimal(10),
         },
         23:{ title: "Force Operation",
         description: "You can keep Conclusion upgrade when L or D reset.",
