@@ -17,17 +17,20 @@ addLayer("mem", {
     softcap() {
         let sc = new Decimal("1e10");
         if (hasUpgrade('dark',21)) sc=sc.times(50);
+        if (hasUpgrade('dark',32)) sc=sc.times(upgradeEffect('dark', 32));
         return sc;
     },
     softcapPower() {
-        if (hasUpgrade('light',21)) return 0.33;
-        return 0.25;
+        let scp = 0.25;
+        if (hasUpgrade('light',21)) scp = 0.33;
+        if (hasUpgrade('light',32)) scp = 0.40;
+        return scp;
     },
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new Decimal(1)
         if (hasUpgrade('mem', 12)) mult = mult.times(upgradeEffect('mem', 12))
         if (hasUpgrade('mem', 24)) mult = mult.times(upgradeEffect('mem', 24))
-        if (hasUpgrade('mem', 33)) mult = mult.pow(1.5)
+        if (hasUpgrade('mem', 33)) mult = mult.pow(upgradeEffect('mem', 33))
         if (hasUpgrade('mem', 34)) mult = mult.times(!hasUpgrade('light', 11)?0.85:upgradeEffect('light', 11))
         if (player.dark.unlocked) mult = mult.times(tmp.dark.effect);
         if (hasUpgrade('light', 12)) mult=mult.times(tmp.light.effect.div(2).gt(1)?tmp.light.effect.div(2):1);
@@ -130,7 +133,7 @@ addLayer("mem", {
         unlocked() { return hasUpgrade("mem", 24) },
         effect() {
             return player[this.layer].points.plus(1).log10().pow(0.5).log10(2);
-        }
+        },
         },
         32:{ title: "Memory Inflation",
         description: "Memory Extraction is much faster.",
@@ -141,6 +144,11 @@ addLayer("mem", {
         description: "Memories gain is massively boosted, but with Fragments gain massively decreased and Fragments&Memories set to 1.",
         cost: new Decimal(1000000),
         unlocked() { return hasUpgrade("mem", 32) },
+        effect() {//Mem, not Frag
+            let eff = new Decimal(1.5);
+            if (hasUpgrade("light", 33)) eff=eff.times(upgradeEffect('light', 33))
+            return eff;
+        },
         onPurchase(){player.points=new Decimal(1);player[this.layer].points = new Decimal(1);},
         },
         34:{ title: "Conclusion",
@@ -268,6 +276,22 @@ addLayer("light", {
         unlocked() { return hasUpgrade("light", 24) },
         cost: new Decimal(35),
         },
+        32:{ title: "Moments Of Lifes",
+        description: "Gain ^0.40 instead of ^0.33 Memories after softcap.",
+        unlocked() { return hasUpgrade("light", 31) },
+        cost: new Decimal(40),
+        },
+        33:{ title: "Prepare To Travel",
+        description: "Light Tachyons itself now makes Directly Transfer boosts more Memories gain.",
+        unlocked() { return hasUpgrade("light", 32) },
+        effect() {
+            let eff = player[this.layer].points.plus(1).log10().plus(1).sqrt();
+            if (eff.lte(1.5)) return new Decimal(1.25);
+            if (eff.gt(2.5)) return new Decimal(2.5);
+            return eff;
+        },
+        cost: new Decimal(40),
+        },
     }
 })
 
@@ -298,6 +322,7 @@ addLayer("dark", {
         if (hasUpgrade("dark", 13)) mult=mult.div(tmp.dark.effect.pow(0.5));
         if (hasUpgrade("dark", 14)) mult=mult.div(upgradeEffect('dark', 14));
         if (hasUpgrade("light", 24)) mult=mult.div(tmp.light.effect);
+        if (hasUpgrade("dark", 33)) mult=mult.div(upgradeEffect('dark', 33));
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -389,6 +414,26 @@ addLayer("dark", {
         description: "Dark Matters effect formula now much better.",
         unlocked() { return hasUpgrade("dark", 24) },
         cost: new Decimal(35),
+        },
+        32:{ title: "Moments Of Anger",
+        description: "Dark Matters itself makes Memories softcap starts later.",
+        unlocked() { return hasUpgrade("dark", 31) },
+        effect() {
+            let eff = player[this.layer].points.div(2);
+            if (eff.lt(1.5)) return new Decimal(1.5);
+            return eff;
+        },
+        cost: new Decimal(40),
+        },
+        33:{ title: "Prepare To Bleed",
+        description: "Achievements now boost Dark Matters gain.",
+        unlocked() { return hasUpgrade("dark", 32) },
+        effect() {
+            let eff = player.a.achievements.length;
+            if (eff<= 1) return new Decimal(1);
+            return eff;
+        },
+        cost: new Decimal(40),
         },
     }
 })
