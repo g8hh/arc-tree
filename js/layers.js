@@ -290,7 +290,7 @@ addLayer("light", {
             if (eff.gt(0.3)) return new Decimal(0.3);
             return eff;
         },
-        cost: new Decimal(40),
+        cost: new Decimal(44),
         },
     }
 })
@@ -433,7 +433,7 @@ addLayer("dark", {
             if (eff<= 1) return new Decimal(1);
             return eff;
         },
-        cost: new Decimal(40),
+        cost: new Decimal(44),
         },
     }
 })
