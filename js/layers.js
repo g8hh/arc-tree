@@ -208,6 +208,7 @@ addLayer("light", {
     effect(){
         if (player[this.layer].points.lte(0)) return new Decimal(1);
         let eff=Decimal.times(tmp.light.effectBase,player.light.points.plus(1));
+        if (hasUpgrade('light',31)) eff=eff.times(player[this.layer].points.sqrt());
         if (eff.lt(1)) return 1;
         return eff;
     },
@@ -255,12 +256,17 @@ addLayer("light", {
         23:{ title: "Fragment Sympathy",
         description: "Directly Transfer decreases Fragments gain less.",
         unlocked() { return hasUpgrade("light", 22) },
-        cost: new Decimal(20),
+        cost: new Decimal(25),
         },
         24:{ title: "Sadness Overjoy",
         description: "Light Tachyons also effects Dark Matters gain.",
         unlocked() { return hasUpgrade("light", 23) },
-        cost: new Decimal(25),
+        cost: new Decimal(30),
+        },
+        31:{ title: "Hardware BUS",
+        description: "Light Tachyons effect formula now much better.",
+        unlocked() { return hasUpgrade("light", 24) },
+        cost: new Decimal(35),
         },
     }
 })
@@ -318,7 +324,9 @@ addLayer("dark", {
         return base;
     },
     effect(){
+        if (player[this.layer].points.lte(0)) return new Decimal(1);
         let eff=Decimal.pow(player[this.layer].points.plus(1).log10().plus(1),tmp.dark.effectBase);
+        if (hasUpgrade('dark', 31)) eff = Decimal.pow(player[this.layer].points.plus(1).times(2).sqrt().plus(1),tmp.dark.effectBase);
         if (eff.lt(1)) return new Decimal(1);
         return eff;
     },
@@ -370,12 +378,17 @@ addLayer("dark", {
         23:{ title: "Force Operation",
         description: "Keep Conclusion upgrade when L or D reset.",
         unlocked() { return hasUpgrade("dark", 22)&&hasUpgrade("light", 21) },
-        cost: new Decimal(20),
+        cost: new Decimal(25),
         },
         24:{ title: "Calm in Warth",
         description: "Dark Matters also effects Light Tachyons gain.",
         unlocked() { return hasUpgrade("dark", 23) },
-        cost: new Decimal(25),
+        cost: new Decimal(30),
+        },
+        31:{ title: "Memory Organizing",
+        description: "Dark Matters effect formula now much better.",
+        unlocked() { return hasUpgrade("dark", 24) },
+        cost: new Decimal(35),
         },
     }
 })
