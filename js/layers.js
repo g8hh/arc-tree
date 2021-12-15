@@ -18,6 +18,7 @@ addLayer("mem", {
         let sc = new Decimal("1e10");
         if (hasUpgrade('dark',21)) sc=sc.times(50);
         if (hasUpgrade('dark',32)) sc=sc.times(upgradeEffect('dark', 32));
+        if (hasUpgrade('dark',34)&&hasAchievement('a',23))sc = sc.times((100-sqrt(player.mem.resetTime)<2)?2:100-sqrt(player.mem.resetTime));
         return sc;
     },
     softcapPower() {
@@ -61,7 +62,8 @@ addLayer("mem", {
         let keep=[];
         //let dark23=[34];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
-        if (hasMilestone('light',1)||hasMilestone('dark',1)) player[this.layer].upgrades.push([11,12,13,14,21,22,23,24,31,32]);
+        if (hasMilestone('light',1)) player[this.layer].upgrades.push([11,12,13,14,21,22,23,24]);
+        if (hasMilestone('dark',1)) player[this.layer].upgrades.push([31,32]);
         if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades.push(34);
         if (hasAchievement('a',21)) player[this.layer].upgrades.push(41);
         if (hasAchievement("a", 13)&&player[this.layer].points.eq(0)) player[this.layer].points=new Decimal(5);
@@ -243,7 +245,7 @@ addLayer("light", {
             requirementDescription: "8 Light Tachyons",
             done() { return player.light.best.gte(8)&&hasAchievement('a',21)},
             unlocked(){return hasAchievement('a',21)},
-            effectDescription: "Keep all your Memory upgrades except last two of row 3.",
+            effectDescription: "Keep all your row1&row2 Memory upgrades when L or D reset.",
         },
         2: {
             requirementDescription: "15 Light Tachyons",
@@ -256,7 +258,7 @@ addLayer("light", {
     doReset(resettingLayer){
         let keep=[];
         if (layers[resettingLayer].row > this.row) layerDataReset('light', keep);
-        if (player.tab=='light'&&!hasUpgrade('dark', 23)) showTab('none');
+        if (player.tab=='light'&&(!hasUpgrade('dark', 23)&&!hasMilestone('light',0))) showTab('none');
     },
     canBuyMax() { return hasUpgrade('light', 22) },
 
@@ -415,7 +417,7 @@ addLayer("dark", {
             requirementDescription: "8 Dark Matters",
             done() { return player.dark.best.gte(8)&&hasAchievement('a',21)},
             unlocked(){return hasAchievement('a',21)},
-            effectDescription: "Keep all your Memory upgrades except last two of row 3.",
+            effectDescription: "Keep your first two Memory upgrades on row 3 when L or D reset.",
         },
         2: {
             requirementDescription: "15 Dark Matters",
@@ -428,7 +430,7 @@ addLayer("dark", {
     doReset(resettingLayer){
         let keep=[];
         if (layers[resettingLayer].row > this.row) layerDataReset('dark', keep);
-        if (player.tab=='dark'&&!hasUpgrade('dark', 23)) showTab('none');
+        if (player.tab=='dark'&&(!hasUpgrade('dark', 23)&&!hasMilestone('dark',0))) showTab('none');
     },
     canBuyMax() { return hasUpgrade('dark', 22) },
 
@@ -491,6 +493,7 @@ addLayer("dark", {
         23:{ title: "Force Operation",
         description: "Keep Conclusion upgrade when L or D reset.",
         unlocked() { return hasUpgrade("dark", 22)&&hasUpgrade("light", 21) },
+        onPurchase(){if (hasAchievement('a',22)) player[this.layer].points = player[this.layer].points.plus(25);},
         cost: new Decimal(25),
         },
         24:{ title: "Calm in Warth",
@@ -705,7 +708,12 @@ addLayer("a", {
         22: {
             name: "Define Aspects™.",
             done() { return hasMilestone('light',0)&&hasMilestone('dark',0)},
-            tooltip: "Reach L&D's 1st milestone.<br>Rewards:Conclusion no longer decreases Memories gain.Optimistic Thoughts will always give back its cost.",
+            tooltip: "Reach L&D's 1st milestone.<br>Rewards:Conclusion no longer decreases Memories gain.Optimistic Thoughts&Force Operation will always give back its cost.",
+        },
+        23: {
+            name: "Now You Are Useless.",
+            done() { return hasAchievement('a',22)&&hasUpgrade('mem',34)},
+            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you brought Conclusion, it makes your softcap start later based on your Time since Memory Reset.",
         },
     },
     tabFormat: [
