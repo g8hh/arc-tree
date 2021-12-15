@@ -146,7 +146,7 @@ addLayer("mem", {
         unlocked() { return hasUpgrade("mem", 32) },
         effect() {//Mem, not Frag
             let eff = new Decimal(1.5);
-            if (hasUpgrade("light", 33)) eff=eff.times(upgradeEffect('light', 33))
+            if (hasUpgrade("light", 33)) eff=eff.add(upgradeEffect('light', 33))
             return eff;
         },
         onPurchase(){player.points=new Decimal(1);player[this.layer].points = new Decimal(1);},
@@ -285,9 +285,9 @@ addLayer("light", {
         description: "Light Tachyons itself now makes Directly Transfer boosts more Memories gain.",
         unlocked() { return hasUpgrade("light", 32) },
         effect() {
-            let eff = player[this.layer].points.plus(1).log10().plus(1).sqrt();
-            if (eff.lte(1.5)) return new Decimal(1.25);
-            if (eff.gt(2.5)) return new Decimal(2.5);
+            let eff = player[this.layer].points.div(500);
+            if (eff.lte(0.1)) return new Decimal(0.1);
+            if (eff.gt(0.3)) return new Decimal(0.3);
             return eff;
         },
         cost: new Decimal(40),
