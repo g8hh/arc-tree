@@ -31,10 +31,15 @@ addLayer("mem", {
         if (hasUpgrade('mem', 12)) mult = mult.times(upgradeEffect('mem', 12))
         if (hasUpgrade('mem', 24)) mult = mult.times(upgradeEffect('mem', 24))
         if (hasUpgrade('mem', 33)) mult = mult.pow(upgradeEffect('mem', 33))
-        if (hasUpgrade('mem', 34)) mult = mult.times(!hasUpgrade('light', 11)?0.85:upgradeEffect('light', 11))
+        if (hasUpgrade('mem', 34)&&!hasAchievement('a',22)) mult = mult.times(!hasUpgrade('light', 11)?0.85:upgradeEffect('light', 11))
         if (player.dark.unlocked) mult = mult.times(tmp.dark.effect);
         if (hasUpgrade('light', 12)) mult=mult.times(tmp.light.effect.div(2).gt(1)?tmp.light.effect.div(2):1);
         return mult
+    },
+    directMult(){
+        let eff=new Decimal(1);
+        if (hasAchievement('a',15)) eff=eff.times(1.5);
+        return eff;
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         exp = new Decimal(1)
@@ -42,6 +47,7 @@ addLayer("mem", {
         return exp
     },
     row: 0, // Row the layer is in on the tree (0 is the first row)
+    displayRow: 1,
     hotkeys: [
         {key: "m", description: "M: Reset for Memories", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
@@ -49,9 +55,10 @@ addLayer("mem", {
 
     doReset(resettingLayer){
         let keep=[];
-        let dark23=[34];
+        //let dark23=[34];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
-        if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades=dark23;
+        if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades.push(34);
+        if (hasAchievement('a',21)) player[this.layer].upgrades.push(41);
         if (hasAchievement("a", 13)&&player[this.layer].points.eq(0)) player[this.layer].points=new Decimal(5);
     },
 
@@ -157,6 +164,19 @@ addLayer("mem", {
         unlocked() { return (hasUpgrade("mem", 33)||hasUpgrade("dark",23))},
         onPurchase(){player.points=new Decimal(1);player[this.layer].points = new Decimal(1);},
         },
+        41:{ title: "Build Up The Core.",
+        fullDisplay(){return "<b>Build Up The Core.</b></br>Unlock two new layers, but sacrifice all your progresses.</br></br>Cost:1e23 Memories</br>65 Light Tachyons</br>65 Dark Matters"},
+        description: "Unlock two new layers, but sacrifice all your progresses.",
+        canAfford(){return player[this.layer].points.gte(1e23)&&player.dark.points.gte(65)&&player.light.points.gte(65)},
+        pay(){
+            player[this.layer].points = player[this.layer].points.sub(1e23);
+            player.dark.points = player.dark.points.sub(65);
+            player.light.points = player.light.points.sub(65);
+        },
+        unlocked() { return ( (hasUpgrade("dark", 34)&&hasUpgrade("light",34)&&player.dark.points.gte(60)&&player.light.points.gte(60)) || hasAchievement('a',21))},
+        style(){return {'height':'200px', 'width':'200px'}},
+        onPurchase(){doReset('kou',true);player[this.layer].upgrades=[41];},
+        },
     }
 })
 
@@ -167,6 +187,8 @@ addLayer("light", {
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
+        best:new Decimal(0),
+        total:new Decimal(0),
         unlockOrder() {return 0},
     }},
     unlockOrder(){return (hasAchievement('a',14)?0:player[this.layer].unlockOrder);},
@@ -180,6 +202,7 @@ addLayer("light", {
     exponent() {
         let ex = new Decimal(1.25);
         if (hasUpgrade('light', 22)) ex=ex.plus(-0.15);
+        if (hasUpgrade('light', 34)) ex=ex.plus(-0.05);
         return ex;
     }, // Prestige currency exponent
     base:1.75,
@@ -188,6 +211,7 @@ addLayer("light", {
         if (hasUpgrade("light", 13)) mult=mult.div(tmp.light.effect.pow(0.15));
         if (hasUpgrade("light", 14)) mult=mult.div(upgradeEffect('light', 14));
         if (hasUpgrade("dark", 24)) mult=mult.div(tmp.dark.effect);
+        if (hasUpgrade('dark', 34)) mult=mult.div(upgradeEffect('dark', 34));
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -195,12 +219,21 @@ addLayer("light", {
         return exp
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
-    displayRow: 0,
+    displayRow: 1,
     hotkeys: [
         {key: "l", description: "L: Reset for Light Tachyons", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
-    layerShown(){return hasUpgrade('mem', 34)},
+    layerShown(){return hasUpgrade('mem', 34)||hasMilestone("light", 0)},
     increaseUnlockOrder: ["dark"],
+
+    milestones: {
+        0: {
+            requirementDescription: "1 Light Tachyon",
+            done() { return player.light.best.gte(1)&&hasAchievement('a',21)},
+            unlocked(){return hasAchievement('a',21)},
+            effectDescription: "This Layer no longer hidden.",
+        },
+    },
 
     doReset(resettingLayer){
         let keep=[];
@@ -231,6 +264,7 @@ addLayer("light", {
         effect() {
             return (hasUpgrade('light',21))?new Decimal(0.95):new Decimal(0.9);
         },
+        onPurchase(){if (hasAchievement('a',22)) player[this.layer].points = player[this.layer].points.plus(1);},
         cost: new Decimal(1),
         },
         12:{ title: "Wandering For Beauty",
@@ -292,6 +326,16 @@ addLayer("light", {
         },
         cost: new Decimal(44),
         },
+        34:{ title: "The Light",
+        description: "Lower Memories requirement for further Light Tachyons, and Light Tachyons itself now boosts Dark Matters gain.",
+        unlocked() { return hasUpgrade("light", 33) },
+        effect() {
+            let eff = player[this.layer].points.div(3);
+            if (eff.lt(1.25)) return new Decimal(1.25);
+            return eff;
+        },
+        cost: new Decimal(48),
+        },
     }
 })
 
@@ -302,6 +346,8 @@ addLayer("dark", {
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
+        best:new Decimal(0),
+        total:new Decimal(0),
         unlockOrder(){return 0},
     }},
     color: "#383838",
@@ -314,6 +360,7 @@ addLayer("dark", {
     exponent() {
         let ex = new Decimal(1.25);
         if (hasUpgrade('dark', 22)) ex=ex.plus(-0.15);
+        if (hasUpgrade('dark', 34)) ex=ex.plus(-0.05);
         return ex;
     },  // Prestige currency exponent
     base:1.75,
@@ -323,6 +370,7 @@ addLayer("dark", {
         if (hasUpgrade("dark", 14)) mult=mult.div(upgradeEffect('dark', 14));
         if (hasUpgrade("light", 24)) mult=mult.div(tmp.light.effect);
         if (hasUpgrade("dark", 33)) mult=mult.div(upgradeEffect('dark', 33));
+        if (hasUpgrade('light', 34)) mult=mult.div(upgradeEffect('light', 34));
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -330,12 +378,21 @@ addLayer("dark", {
         return exp;
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
-    displayRow: 0,
+    displayRow: 1,
     hotkeys: [
         {key: "d", description: "D: Reset for Dark Matters", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
-    layerShown(){return hasUpgrade('mem', 34)},
+    layerShown(){return hasUpgrade('mem', 34)||hasMilestone('dark',0)},
     increaseUnlockOrder: ["light"],
+
+    milestones: {
+        0: {
+            requirementDescription: "1 Dark Matter",
+            done() { return player.dark.best.gte(1)&&hasAchievement('a',21)},
+            unlocked(){return hasAchievement('a',21)},
+            effectDescription: "This Layer no longer hidden.",
+        },
+    },
 
     doReset(resettingLayer){
         let keep=[];
@@ -435,8 +492,143 @@ addLayer("dark", {
         },
         cost: new Decimal(44),
         },
+        34:{ title: "The Dark",
+        description: "Lower Fragments requirement for further Dark Matters, and Dark Matters itself now boosts Light Tachyons gain.",
+        unlocked() { return hasUpgrade("dark", 33) },
+        effect() {
+            let eff = player[this.layer].points.div(3);
+            if (eff.lt(1.25)) return new Decimal(1.25);
+            return eff;
+        },
+        cost: new Decimal(48),
+        },
     }
 })
+
+addLayer("kou", {
+    name: "Red dolls", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "R", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    startData() { return {
+        unlocked: false,
+		points: new Decimal(0),
+        unlockOrder(){return 0},
+    }},
+    color: "#f0adac",
+    requires(){return new Decimal(1e25)}, // Can be a function that takes requirement increases into account
+    resource: "Red dolls", // Name of prestige currency
+    baseResource: "Memories", // Name of resource prestige is based on
+    baseAmount() {return player.mem.points}, // Get the current amount of baseResource
+    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    branches: ["light"],
+    exponent() {
+        let ex = new Decimal(1.5);
+        return ex;
+    },  // Prestige currency exponent
+    gainMult() { // Calculate the multiplier for main currency from bonuses
+        mult = new Decimal(1)
+        return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+        exp = new Decimal(1); 
+        return exp;
+    },
+    row: 2, // Row the layer is in on the tree (0 is the first row)
+    displayRow: 0,
+    hotkeys: [
+        {key: "r", description: "R: Reset for Red dolls", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    layerShown(){return hasAchievement('a',21)},
+
+    effectBase(){
+        let base = new Decimal(1.5);
+        return base;
+    },
+    effect(){
+    },
+    effectDescription() {},
+    upgrades:{
+    }
+})
+
+addLayer("lethe", {
+    name: "Forgotten Drops", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "F", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 4, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    startData() { return {
+        unlocked: false,
+		points: new Decimal(0),
+        unlockOrder(){return 0},
+    }},
+    color: "#fee85d",
+    requires(){return new Decimal(1e18)}, // Can be a function that takes requirement increases into account
+    resource: "Forgotten Drops", // Name of prestige currency
+    baseResource: "Fragment", // Name of resource prestige is based on
+    baseAmount() {return player.mem.points}, // Get the current amount of baseResource
+    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    branches: ["dark"],
+    exponent() {
+        let ex = new Decimal(1.5);
+        return ex;
+    },  // Prestige currency exponent
+    gainMult() { // Calculate the multiplier for main currency from bonuses
+        mult = new Decimal(1)
+        return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+        exp = new Decimal(1); 
+        return exp;
+    },
+    row: 2, // Row the layer is in on the tree (0 is the first row)
+    displayRow: 0,
+    hotkeys: [
+        {key: "r", description: "F: Reset for Forgotten Drops", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    layerShown(){return hasAchievement('a',21)},
+
+    effectBase(){
+        let base = new Decimal(1.5);
+        return base;
+    },
+    effect(){
+    },
+    effectDescription() {},
+    upgrades:{
+    }
+})
+
+
+//GHOSTS
+
+addNode("ghost1", {
+    name: "ghost1", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "G1", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    canclick(){return false},
+    row: 0,
+    color: "#000000",
+    layerShown() {return "ghost";}
+})
+addNode("ghost2", {
+    name: "ghost2", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "G2", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 2, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    canclick(){return false},
+    row: 0,
+    color: "#000000",
+    layerShown() {return "ghost";}
+})
+addNode("ghost3", {
+    name: "ghost3", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "G3", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 3, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    canclick(){return false},
+    row: 0,
+    color: "#000000",
+    layerShown() {return "ghost";}
+})
+
+
 
 addLayer("a", {
     startData() { return {
@@ -468,6 +660,21 @@ addLayer("a", {
             name: "Define Aspects.",
             done() { return player.light.unlocked&&player.dark.unlocked},
             tooltip: "Unlock Both Light And Dark Layers.<br>Rewards:They behave as they are unlocked first.",
+        },
+        15: {
+            name: "Does Anybody Say sth About Softcap?",
+            done() { return tmp['mem'].softcap.gte(1e13)},
+            tooltip: "Push Memory Softcap starts x1,000 later.<br>Rewards:Memories gain x1.5, regardless of softcap.",
+        },
+        21: {
+            name: "Eternal Core",
+            done() { return hasUpgrade('mem',41)},
+            tooltip: "Build up the Core.<br>Rewards:Unlock L&D milestones and you won't lose Eternal Core.",
+        },
+        22: {
+            name: "Define Aspects™.",
+            done() { return hasMilestone('light',0)&&hasMilestone('dark',0)},
+            tooltip: "Reach L&D's 1st milestone.<br>Rewards:Conclusion no longer decreases Memories gain.Optimistic Thoughts will always give back its cost.",
         },
     },
     tabFormat: [
