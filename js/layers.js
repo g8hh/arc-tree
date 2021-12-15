@@ -313,7 +313,7 @@ addLayer("dark", {
     branches: ["mem"],
     exponent() {
         let ex = new Decimal(1.25);
-        if (hasUpgrade('light', 22)) ex=ex.plus(-0.15);
+        if (hasUpgrade('dark', 22)) ex=ex.plus(-0.15);
         return ex;
     },  // Prestige currency exponent
     base:1.75,
@@ -326,7 +326,7 @@ addLayer("dark", {
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
-        exp = new Decimal(1);
+        exp = new Decimal(1); 
         return exp;
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
