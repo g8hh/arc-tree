@@ -52,11 +52,16 @@ addLayer("mem", {
         {key: "m", description: "M: Reset for Memories", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return true},
-
+    passiveGeneration() { 
+        let pg = 0;
+        if (hasMilestone('light',2)) pg=pg+0.05;
+        if (hasMilestone('dark',2)) pg=pg+0.05;
+     },
     doReset(resettingLayer){
         let keep=[];
         //let dark23=[34];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
+        if (hasMilestone('light',1)||hasMilestone('dark',1)) player[this.layer].upgrades.push([11,12,13,14,21,22,23,24,31,32]);
         if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades.push(34);
         if (hasAchievement('a',21)) player[this.layer].upgrades.push(41);
         if (hasAchievement("a", 13)&&player[this.layer].points.eq(0)) player[this.layer].points=new Decimal(5);
@@ -190,6 +195,7 @@ addLayer("light", {
         best:new Decimal(0),
         total:new Decimal(0),
         unlockOrder() {return 0},
+        auto: false,
     }},
     unlockOrder(){return (hasAchievement('a',14)?0:player[this.layer].unlockOrder);},
     color: "#ededed",
@@ -232,6 +238,18 @@ addLayer("light", {
             done() { return player.light.best.gte(1)&&hasAchievement('a',21)},
             unlocked(){return hasAchievement('a',21)},
             effectDescription: "This Layer no longer hidden.",
+        },
+        1: {
+            requirementDescription: "8 Light Tachyons",
+            done() { return player.light.best.gte(8)&&hasAchievement('a',21)},
+            unlocked(){return hasAchievement('a',21)},
+            effectDescription: "Keep all your Memory upgrades except last two of row 3.",
+        },
+        2: {
+            requirementDescription: "15 Light Tachyons",
+            done() { return player.light.best.gte(15)&&hasAchievement('a',21)},
+            unlocked(){return hasAchievement('a',21)},
+            effectDescription: "Gain 5% of Memories gain every second.",
         },
     },
 
@@ -349,6 +367,7 @@ addLayer("dark", {
         best:new Decimal(0),
         total:new Decimal(0),
         unlockOrder(){return 0},
+        auto: false,
     }},
     color: "#383838",
     requires(){return new Decimal(9999).times((player.dark.unlockOrder&&!player.dark.unlocked)?5:1)}, // Can be a function that takes requirement increases into account
@@ -391,6 +410,18 @@ addLayer("dark", {
             done() { return player.dark.best.gte(1)&&hasAchievement('a',21)},
             unlocked(){return hasAchievement('a',21)},
             effectDescription: "This Layer no longer hidden.",
+        },
+        1: {
+            requirementDescription: "8 Dark Matters",
+            done() { return player.dark.best.gte(8)&&hasAchievement('a',21)},
+            unlocked(){return hasAchievement('a',21)},
+            effectDescription: "Keep all your Memory upgrades except last two of row 3.",
+        },
+        2: {
+            requirementDescription: "15 Dark Matters",
+            done() { return player.dark.best.gte(15)&&hasAchievement('a',21)},
+            unlocked(){return hasAchievement('a',21)},
+            effectDescription: "Gain 5% of Memories gain every second.",
         },
     },
 
@@ -685,3 +716,36 @@ addLayer("a", {
     ],
 }, 
 )
+
+addLayer("ab", {
+	startData() { return {unlocked: true}},
+	color: "yellow",
+	symbol: "AB",
+	row: "side",
+	layerShown() { return hasAchievement('a',21) },
+	tooltip: "Autobuyers",
+	clickables: {/* 
+		//rows: 6,
+		//cols: 4,
+		11: {
+			title: "Light Tachyons",
+			display(){
+				return hasMilestone("light", 1)?(player.light.auto?"On":"Off"):"Locked"
+			},
+			unlocked() { return player.light.layerShown&&hasAchievement('a',21) },
+			canClick() { return hasMilestone("light", 1) },
+			onClick() { player.light.auto = !player.light.auto },
+			style: {"background-color"() { return player.light.auto?"#ededed":"#666666" }},
+		},
+        12: {
+			title: "Dark Matters",
+			display(){
+				return hasMilestone("dark", 1)?(player.dark.auto?"On":"Off"):"Locked"
+			},
+			unlocked() { return player.dark.layerShown&&hasAchievement('a',21) },
+			canClick() { return hasMilestone("light", 1) },
+			onClick() { player.light.auto = !player.dark.auto },
+			style: {"background-color"() { return player.dark.auto?"#383838":"#666666" }},
+		},*/
+	},
+})
