@@ -233,6 +233,11 @@ addLayer("light", {
         exp = new Decimal(1);
         return exp
     },
+    directMult(){
+        let dm=new Decimal(1);
+        if (player.kou.unlocked) dm=dm.times(tmp.kou.effect);
+        return dm;
+    },
     row: 1, // Row the layer is in on the tree (0 is the first row)
     displayRow: 1,
     hotkeys: [
@@ -272,6 +277,7 @@ addLayer("light", {
         let keep=[];
         if (layers[resettingLayer].row > this.row) layerDataReset('light', keep);
         if (player.tab=='light'&&(!hasUpgrade('dark', 23)&&!hasMilestone('light',0))) showTab('none');
+        if (hasMilestone('kou',0)) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
     },
     canBuyMax() { return hasUpgrade('light', 22) },
 
@@ -411,6 +417,13 @@ addLayer("dark", {
         exp = new Decimal(1); 
         return exp;
     },
+
+    directMult(){
+        let dm=new Decimal(1);
+        if (player.kou.unlocked) dm=dm.times(tmp.kou.effect);
+        return dm;
+    },
+
     row: 1, // Row the layer is in on the tree (0 is the first row)
     displayRow: 1,
     hotkeys: [
@@ -567,25 +580,38 @@ addLayer("kou", {
 		points: new Decimal(0),
         unlockOrder(){return 0},
     }},
-    color: "#f0adac",
+    color: "#ffa0be",
     requires(){return new Decimal(1e30)}, // Can be a function that takes requirement increases into account
     resource: "Red dolls", // Name of prestige currency
     baseResource: "Memories", // Name of resource prestige is based on
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
-    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["light"],
+    base:2,
     exponent() {
         let ex = new Decimal(1.5);
         return ex;
     },  // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
-        mult = new Decimal(1)
+        mult = new Decimal(1)//不要忘了这里是static层
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
         exp = new Decimal(1); 
         return exp;
     },
+
+    effectBase:1.5,
+
+    effect(){
+        if (player[this.layer].points.lte(0)) return new Decimal(1);
+        let eff=new Decimal(player[this.layer].points.times(0.1).plus(1));
+        return eff;
+    },
+    effectDescription() {
+        return "which are directly boosting Light Tachyons and Dark Matters gain by "+format(tmp.kou.effect)+"x"
+    },
+
     row: 2, // Row the layer is in on the tree (0 is the first row)
     displayRow: 0,
     hotkeys: [
@@ -593,13 +619,41 @@ addLayer("kou", {
     ],
     layerShown(){return hasAchievement('a',21)},
 
-    effectBase(){
-        let base = new Decimal(1.5);
-        return base;
+    milestones: {
+        0: {
+            requirementDescription: "1 Red doll",
+            done() { return player.kou.best.gte(1)},
+            unlocked(){return player.kou.unlocked},
+            effectDescription: "Keep first two Milestones and More Brightness upgrades of Light Tachyon layers when R or F reset.",
+        },
     },
-    effect(){
+
+    tabFormat: {
+        "Milestones": {
+            content: [
+                "main-display",
+                "blank",
+                "prestige-button",
+                "blank",
+                ["display-text",
+                    function() {return 'You have ' + formatWhole(player.mem.points)+' Memories.'},
+                        {}],
+                "blank",
+                "milestones",]
+        },
+        "Happiness Challenges": {
+            unlocked() { return true },
+            buttonStyle() { return {'background-color': '#bd003c'} },
+            content: [
+                "main-display",
+                "prestige-button",
+                "blank",
+                ["display-text",
+                    function() {return 'You have ' + formatWhole(player.mem.points)+' Memories.'},
+                        {}],
+                "blank",]
+        },
     },
-    effectDescription() {},
     upgrades:{
     }
 })
