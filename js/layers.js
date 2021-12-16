@@ -20,6 +20,7 @@ addLayer("mem", {
         if (hasUpgrade('dark',32)) sc=sc.times(upgradeEffect('dark', 32));
         if (hasUpgrade('mem',34)&&hasAchievement('a',23))sc = sc.times((50-Math.sqrt(player.mem.resetTime)<5)?5:50-Math.sqrt(player.mem.resetTime));
         if (hasMilestone('dark',2))sc = sc.times(tmp.dark.effect);
+        if (hasAchievement('a',25)) sc = sc.times(player.points.plus(1).log10().plus(1));
         return sc;
     },
     softcapPower() {
@@ -613,14 +614,14 @@ addLayer("lethe", {
         unlockOrder(){return 0},
     }},
     color: "#fee85d",
-    requires(){return new Decimal(1e18)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(2e20)}, // Can be a function that takes requirement increases into account
     resource: "Forgotten Drops", // Name of prestige currency
     baseResource: "Fragments", // Name of resource prestige is based on
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["dark"],
     exponent() {
-        let ex = new Decimal(1.5);
+        let ex = new Decimal(0.75);
         return ex;
     },  // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
@@ -733,6 +734,16 @@ addLayer("a", {
             done() { return hasAchievement('a',22)&&hasUpgrade('mem',34)},
             tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you brought Conclusion, it makes your Memory softcap start later but reduces based on your Time since Memory Reset.",
         },
+        24: {
+            name: "Eternal Core^2",
+            done() { return hasAchievement('a',21)&&(player.mem.points.gte(1e23)&&player.light.points.gte(65)&&player.dark.points.gte(65))},
+            tooltip: "Make you can afford Eternal Core again after you have it.",
+        },
+        25: {
+            name: "Stacks^Stacks",
+            done() { return player.points.gte(9.99e18)},
+            tooltip: "Gain 9.99e18 Fragments.<br>Rewards:Fragments now make Memory softcap later.",
+        },
     },
     tabFormat: [
         "blank", 
@@ -753,7 +764,7 @@ addLayer("ab", {
 	clickables: {
 		//rows: 6,
 		//cols: 4,
-		11: {/*
+		/*11: {
 			title: "Light Tachyons",
 			display(){
 				return hasMilestone("light", 2)?(player.light.auto?"On":"Off"):"Locked"
@@ -775,4 +786,4 @@ addLayer("ab", {
 		    },*/
 	        },
         }
-})
+)
