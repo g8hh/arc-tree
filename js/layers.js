@@ -278,6 +278,7 @@ addLayer("light", {
         if (layers[resettingLayer].row > this.row) layerDataReset('light', keep);
         if (player.tab=='light'&&(!hasUpgrade('dark', 23)&&!hasMilestone('light',0))) showTab('none');
         if (hasMilestone('kou',0)&&(resettingLayer=='kou'||resettingLayer=='lethe')) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
+        if (hasMilestone('kou',1)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].upgrades = player[this.layer].upgrades.concat([11,12,13,14]);
     },
     canBuyMax() { return hasUpgrade('light', 22) },
 
@@ -465,6 +466,7 @@ addLayer("dark", {
         if (layers[resettingLayer].row > this.row) layerDataReset('dark', keep);
         if (player.tab=='dark'&&(!hasUpgrade('dark', 23)&&!hasMilestone('dark',0))) showTab('none');
         if (hasMilestone('lethe',0)&&(resettingLayer=='kou'||resettingLayer=='lethe')) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
+        if (hasMilestone('lethe',1)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].upgrades = player[this.layer].upgrades.concat([11,12,13,14]);
     },
     canBuyMax() { return hasUpgrade('dark', 22) },
 
@@ -527,7 +529,7 @@ addLayer("dark", {
         23:{ title: "Force Operation",
         description: "Keep Conclusion upgrade when L or D reset.",
         unlocked() { return hasUpgrade("dark", 22)&&hasUpgrade("light", 21) },
-        onPurchase(){if (hasAchievement('a',22)) player[this.layer].points = player[this.layer].points.plus(25);player[this.layer].upgrades.push(34)},
+        onPurchase(){if (hasAchievement('a',22)) player[this.layer].points = player[this.layer].points.plus(25);player.mem.upgrades.push(34)},
         cost: new Decimal(25),
         },
         24:{ title: "Calm in Warth",
@@ -630,6 +632,12 @@ addLayer("kou", {
             unlocked(){return player.kou.unlocked},
             effectDescription: "Keep first two Milestones and More Brightness upgrades of Light Tachyon layers when R or F reset.",
         },
+        1: {
+            requirementDescription: "2 Red dolls",
+            done() { return player.kou.best.gte(2)},
+            unlocked(){return player.kou.unlocked},
+            effectDescription: "Keep first row upgrades of Light Tachyon layers when R or F reset.",
+        },
     },
 
     tabFormat: {
@@ -689,7 +697,7 @@ addLayer("lethe", {
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["dark"],
     exponent() {
-        let ex = new Decimal(0.75);
+        let ex = new Decimal(0.6);
         return ex;
     },  // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
@@ -705,10 +713,16 @@ addLayer("lethe", {
 
     milestones: {
         0: {
-            requirementDescription: "1 Forgotten Drops",
+            requirementDescription: "1 Forgotten Drop",
             done() { return player.lethe.best.gte(1)},
             unlocked(){return player.lethe.unlocked},
             effectDescription: "Keep first two Milestones and More Darkness upgrades of Dark Matter layers when R or F reset.",
+        },
+        1: {
+            requirementDescription: "10 Forgotten Drops",
+            done() { return player.kou.best.gte(10)},
+            unlocked(){return player.kou.unlocked},
+            effectDescription: "Keep first row upgrades of Dark Matter layers when R or F reset.",
         },
     },
 
