@@ -521,7 +521,7 @@ addLayer("dark", {
         },
         22:{ title: "More Darkness",
         description: "You can buy max Dark Matters And lower Fragments requirement for further Dark Matters",
-        unlocked() { return hasUpgrade("dark", 21) },
+        unlocked() { return hasUpgrade("dark", 21)||hasMilestone('lethe',0)},
         cost: new Decimal(15),
         },
         23:{ title: "Force Operation",
