@@ -582,7 +582,7 @@ addLayer("kou", {
 		points: new Decimal(0),
         best:new Decimal(0),
         total:new Decimal(0),
-        unlockOrder;0,
+        unlockOrder:0,
     }},
     color: "#ffa0be",
     requires(){return new Decimal(1e30)}, // Can be a function that takes requirement increases into account
