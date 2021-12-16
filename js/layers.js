@@ -68,7 +68,8 @@ addLayer("mem", {
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
         if (hasMilestone('light',1)) player[this.layer].upgrades = player[this.layer].upgrades.concat([11,12,13,14,21,22,23,24]);
         if (hasMilestone('dark',1)) player[this.layer].upgrades = player[this.layer].upgrades.concat([31,32]);
-        if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades.push(34);
+        if (hasAchievement('a',32)) player[this.layer].upgrades.push(33);
+        if ((hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) || (hasMilestone('lethe',4)&&(resettingLayer=="kou"||resettingLayer=="lethe"))) player[this.layer].upgrades.push(34);
         if (hasAchievement('a',21)) player[this.layer].upgrades.push(41);
         if (hasAchievement("a", 13)&&player[this.layer].points.eq(0)) player[this.layer].points=new Decimal(5);
     },
@@ -244,6 +245,7 @@ addLayer("light", {
         {key: "l", description: "L: Reset for Light Tachyons", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return hasUpgrade('mem', 34)||hasMilestone("light", 0)},
+    autoPrestige(){return (hasAchievement('a',34)&&player.light.auto)},
     increaseUnlockOrder: ["dark"],
 
     milestones: {
@@ -279,8 +281,12 @@ addLayer("light", {
         if (player.tab=='light'&&(!hasUpgrade('dark', 23)&&!hasMilestone('light',0))) showTab('none');
         if (hasMilestone('kou',0)&&(resettingLayer=='kou'||resettingLayer=='lethe')) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
         if (hasMilestone('kou',1)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].upgrades = player[this.layer].upgrades.concat([11,12,13,14]);
+        if (hasMilestone('kou',3)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].upgrades = player[this.layer].upgrades.concat([31,32,33,34]);
+        if (hasMilestone('kou',4)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].upgrades = player[this.layer].upgrades.concat([21,23,24]);
+        if (hasMilestone('kou',5)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].milestones = player[this.layer].milestones.concat([2,3]);
     },
     canBuyMax() { return hasUpgrade('light', 22) },
+    resetsNothing(){return hasMilestone('kou',6)},
 
     effectBase(){
         let base = new Decimal(1.5);
@@ -290,6 +296,7 @@ addLayer("light", {
         if (player[this.layer].points.lte(0)) return new Decimal(1);
         let eff=Decimal.times(tmp.light.effectBase,player.light.points.plus(1));
         if (hasUpgrade('light',31)) eff=eff.times(player[this.layer].points.sqrt());
+        if (hasAchievement('a',33)) eff=eff.times(Decimal.log10(player[this.layer].resetTime+1).plus(1));
         if (eff.lt(1)) return 1;
         return eff;
     },
@@ -338,6 +345,7 @@ addLayer("light", {
         23:{ title: "Fragment Sympathy",
         description: "Directly Transfer decreases Fragments gain less.",
         unlocked() { return hasUpgrade("light", 22) },
+        onPurchase(){if (hasAchievement('a',32)) player[this.layer].points = player[this.layer].points.plus(25);},
         cost: new Decimal(25),
         },
         24:{ title: "Sadness Overjoy",
@@ -347,17 +355,17 @@ addLayer("light", {
         },
         31:{ title: "Hardware BUS",
         description: "Light Tachyons effect formula now much better.",
-        unlocked() { return hasUpgrade("light", 24) },
+        unlocked() { return hasUpgrade("light", 24)||hasMilestone('kou',3) },
         cost: new Decimal(35),
         },
         32:{ title: "Moments Of Lifes",
         description: "Gain ^0.40 instead of ^0.33 Memories after softcap.",
-        unlocked() { return hasUpgrade("light", 31) },
+        unlocked() { return hasUpgrade("light", 31)||hasMilestone('kou',3) },
         cost: new Decimal(40),
         },
         33:{ title: "Prepare To Travel",
         description: "Light Tachyons itself now makes Directly Transfer boosts more Memories gain.",
-        unlocked() { return hasUpgrade("light", 32) },
+        unlocked() { return hasUpgrade("light", 32)||hasMilestone('kou',3) },
         effect() {
             let eff = player[this.layer].points.div(500);
             if (eff.lte(0.1)) return new Decimal(0.1);
@@ -368,7 +376,7 @@ addLayer("light", {
         },
         34:{ title: "The Light",
         description: "Lower Memories requirement for further Light Tachyons, and Light Tachyons itself now boosts Dark Matters gain.",
-        unlocked() { return hasUpgrade("light", 33) },
+        unlocked() { return hasUpgrade("light", 33)||hasMilestone('kou',3) },
         effect() {
             let eff = player[this.layer].points.div(3);
             if (eff.lt(1.25)) return new Decimal(1.25);
@@ -432,6 +440,7 @@ addLayer("dark", {
         {key: "d", description: "D: Reset for Dark Matters", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return hasUpgrade('mem', 34)||hasMilestone('dark',0)},
+    autoPrestige(){return (hasAchievement('a',34)&&player.dark.auto)},
     increaseUnlockOrder: ["light"],
 
     milestones: {
@@ -467,8 +476,12 @@ addLayer("dark", {
         if (player.tab=='dark'&&(!hasUpgrade('dark', 23)&&!hasMilestone('dark',0))) showTab('none');
         if (hasMilestone('lethe',0)&&(resettingLayer=='kou'||resettingLayer=='lethe')) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
         if (hasMilestone('lethe',1)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].upgrades = player[this.layer].upgrades.concat([11,12,13,14]);
+        if (hasMilestone('lethe',3)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].upgrades = player[this.layer].upgrades.concat([31,32,33,34]);
+        if (hasMilestone('lethe',4)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].upgrades = player[this.layer].upgrades.concat([21,23,24]);
+        if (hasMilestone('lethe',5)&&(resettingLayer=='kou'||resettingLayer=='lethe'))  player[this.layer].milestones = player[this.layer].milestones.concat([2,3]);
     },
     canBuyMax() { return hasUpgrade('dark', 22) },
+    resetsNothing(){return hasMilestone('lethe',6)},
 
     effectBase(){
         let base = new Decimal(1.5);
@@ -478,6 +491,7 @@ addLayer("dark", {
         if (player[this.layer].points.lte(0)) return new Decimal(1);
         let eff=Decimal.pow(player[this.layer].points.plus(1).log10().plus(1),tmp.dark.effectBase);
         if (hasUpgrade('dark', 31)) eff = Decimal.pow(player[this.layer].points.plus(1).times(2).sqrt().plus(1),tmp.dark.effectBase);
+        if (hasAchievement('a',33)) eff=eff.times(Decimal.log10(player[this.layer].resetTime+1).plus(1));
         if (eff.lt(1)) return new Decimal(1);
         return eff;
     },
@@ -528,7 +542,7 @@ addLayer("dark", {
         },
         23:{ title: "Force Operation",
         description: "Keep Conclusion upgrade when L or D reset.",
-        unlocked() { return hasUpgrade("dark", 22)&&hasUpgrade("light", 21) },
+        unlocked() { return hasUpgrade("dark", 22)&&(hasUpgrade("light", 21)||hasMilestone('lethe',2)) },
         onPurchase(){if (hasAchievement('a',22)) player[this.layer].points = player[this.layer].points.plus(25);player.mem.upgrades.push(34)},
         cost: new Decimal(25),
         },
@@ -539,12 +553,12 @@ addLayer("dark", {
         },
         31:{ title: "Memory Organizing",
         description: "Dark Matters effect formula now much better.",
-        unlocked() { return hasUpgrade("dark", 24) },
+        unlocked() { return hasUpgrade("dark", 24)||hasMilestone('lethe',3) },
         cost: new Decimal(35),
         },
         32:{ title: "Moments Of Anger",
         description: "Dark Matters itself makes Memories softcap starts later.",
-        unlocked() { return hasUpgrade("dark", 31) },
+        unlocked() { return hasUpgrade("dark", 31)||hasMilestone('lethe',3) },
         effect() {
             let eff = player[this.layer].points.div(2);
             if (eff.lt(1.5)) return new Decimal(1.5);
@@ -554,7 +568,7 @@ addLayer("dark", {
         },
         33:{ title: "Prepare To Bleed",
         description: "Achievements now boost Dark Matters gain.",
-        unlocked() { return hasUpgrade("dark", 32) },
+        unlocked() { return hasUpgrade("dark", 32)||hasMilestone('lethe',3) },
         effect() {
             let eff = player.a.achievements.length;
             if (eff<= 1) return new Decimal(1);
@@ -564,7 +578,7 @@ addLayer("dark", {
         },
         34:{ title: "The Dark",
         description: "Lower Fragments requirement for further Dark Matters, and Dark Matters itself now boosts Light Tachyons gain.",
-        unlocked() { return hasUpgrade("dark", 33) },
+        unlocked() { return hasUpgrade("dark", 33)||hasMilestone('lethe',3) },
         effect() {
             let eff = player[this.layer].points.div(3);
             if (eff.lt(1.25)) return new Decimal(1.25);
@@ -576,7 +590,7 @@ addLayer("dark", {
 })
 
 addLayer("kou", {
-    name: "Red dolls", // This is optional, only used in a few places, If absent it just uses the layer id.
+    name: "Red Dolls", // This is optional, only used in a few places, If absent it just uses the layer id.
     symbol: "R", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
@@ -588,7 +602,7 @@ addLayer("kou", {
     }},
     color: "#ffa0be",
     requires(){return new Decimal(1e30)}, // Can be a function that takes requirement increases into account
-    resource: "Red dolls", // Name of prestige currency
+    resource: "Red Dolls", // Name of prestige currency
     baseResource: "Memories", // Name of resource prestige is based on
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
     type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
@@ -599,7 +613,9 @@ addLayer("kou", {
         return ex;
     },  // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
-        mult = new Decimal(1)//不要忘了这里是static层
+        mult = new Decimal(1);//不要忘了这里是static层
+        if (hasMilestone('lethe',5)) mult=mult.div(tmp.lethe.effect);
+        if (hasAchievement('a',35)) mult = mult.div(tmp.light.effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -627,16 +643,46 @@ addLayer("kou", {
 
     milestones: {
         0: {
-            requirementDescription: "1 Red doll",
+            requirementDescription: "1 Red Doll",
             done() { return player.kou.best.gte(1)},
             unlocked(){return player.kou.unlocked},
-            effectDescription: "Keep first two Milestones and More Brightness upgrades of Light Tachyon layers when R or F reset.",
+            effectDescription: "Keep first two Milestones and More Brightness upgrades of Light Tachyon layer when R or F reset.",
         },
         1: {
-            requirementDescription: "2 Red dolls",
+            requirementDescription: "2 Red Dolls",
             done() { return player.kou.best.gte(2)},
             unlocked(){return player.kou.unlocked},
-            effectDescription: "Keep first row upgrades of Light Tachyon layers when R or F reset.",
+            effectDescription: "Keep first row upgrades of Light Tachyon layer when R or F reset.",
+        },
+        2: {
+            requirementDescription: "3 Red Dolls",
+            done() { return player.kou.best.gte(3)},
+            unlocked(){return player.kou.unlocked},
+            effectDescription: "Directly Transfer no longer decreases your Fragment generation.",
+        },
+        3: {
+            requirementDescription: "10 Red Dolls",
+            done() { return player.kou.best.gte(10)},
+            unlocked(){return player.kou.unlocked},
+            effectDescription: "Keep third row upgrades of Light Tachyon layer when R or F reset.",
+        },
+        4: {
+            requirementDescription: "12 Red Dolls",
+            done() { return player.kou.best.gte(12)},
+            unlocked(){return player.kou.unlocked},
+            effectDescription: "Keep second row upgrades of Light Tachyon layer when R or F reset.",
+        },
+        5: {
+            requirementDescription: "13 Red Dolls",
+            done() { return player.kou.best.gte(13)},
+            unlocked(){return player.kou.unlocked},
+            effectDescription: "Keep last two Milestones of Light Tachyon layer when R or F reset, and Red Dolls effect also boosts Forgotten Drops gain.",
+        },
+        6: {
+            requirementDescription: "15 Red Dolls",
+            done() { return player.kou.best.gte(15)},
+            unlocked(){return player.kou.unlocked},
+            effectDescription: "Light Tachyon layer resets nothing.",
         },
     },
 
@@ -701,7 +747,9 @@ addLayer("lethe", {
         return ex;
     },  // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
-        mult = new Decimal(1)
+        mult = new Decimal(1);
+        if (hasMilestone('kou',5)) mult=mult.times(tmp.kou.effect);
+        if (hasAchievement('a',35)) mult = mult.times(tmp.dark.effect);
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -716,13 +764,43 @@ addLayer("lethe", {
             requirementDescription: "1 Forgotten Drop",
             done() { return player.lethe.best.gte(1)},
             unlocked(){return player.lethe.unlocked},
-            effectDescription: "Keep first two Milestones and More Darkness upgrades of Dark Matter layers when R or F reset.",
+            effectDescription: "Keep first two Milestones and More Darkness upgrades of Dark Matter layer when R or F reset.",
         },
         1: {
             requirementDescription: "10 Forgotten Drops",
-            done() { return player.kou.best.gte(10)},
-            unlocked(){return player.kou.unlocked},
-            effectDescription: "Keep first row upgrades of Dark Matter layers when R or F reset.",
+            done() { return player.lethe.best.gte(10)},
+            unlocked(){return player.lethe.unlocked},
+            effectDescription: "Keep first row upgrades of Dark Matter layer when R or F reset.",
+        },
+        2: {
+            requirementDescription: "35 Forgotten Drops",
+            done() { return player.lethe.best.gte(35)},
+            unlocked(){return player.lethe.unlocked},
+            effectDescription: "Force Operation no longer needs Seeking Delight to unlock.",
+        },
+        3: {
+            requirementDescription: "5,000 Forgotten Drops",
+            done() { return player.lethe.best.gte(5000)},
+            unlocked(){return player.lethe.unlocked},
+            effectDescription: "Keep third row upgrades of Dark Matter layer when R or F reset.",
+        },
+        4: {
+            requirementDescription: "1,000,000 Forgotten Drops",
+            done() { return player.lethe.best.gte(1000000)},
+            unlocked(){return player.lethe.unlocked},
+            effectDescription: "Keep second row upgrades of Dark Matter layer when R or F reset.",
+        },
+        5: {
+            requirementDescription: "20,000,000 Forgotten Drops",
+            done() { return player.lethe.best.gte(20000000)},
+            unlocked(){return player.lethe.unlocked},
+            effectDescription: "Keep last two Milestones of Dark Matter layer when R or F reset, and Forgotten Drops effect also boosts Red Dolls gain.",
+        },
+        6: {
+            requirementDescription: "50,000,000 Forgotten Drops",
+            done() { return player.lethe.best.gte(50000000)},
+            unlocked(){return player.lethe.unlocked},
+            effectDescription: "Dark Matter layer resets nothing.",
         },
     },
 
@@ -825,12 +903,12 @@ addLayer("a", {
         22: {
             name: "Define Aspects™.",
             done() { return hasMilestone('light',0)&&hasMilestone('dark',0)},
-            tooltip: "Reach L&D's 1st milestone.<br>Rewards:Conclusion no longer decreases Memories gain.Optimistic Thoughts&Force Operation will always give back its cost.",
+            tooltip: "Reach L&D's 1st milestone.<br>Rewards:Conclusion no longer decreases Memories gain.Optimistic Thoughts&Force Operation will always give back their cost.",
         },
         23: {
             name: "Now You Are Useless.",
             done() { return hasAchievement('a',22)&&hasUpgrade('mem',34)},
-            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you brought Conclusion, it makes your Memory softcap start later but effect reduces based on your Time since Memory Reset.",
+            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you buy Conclusion, it makes your Memory softcap start later but effect reduces based on your Time since Memory Reset.",
         },
         24: {
             name: "Eternal Core^2",
@@ -841,6 +919,31 @@ addLayer("a", {
             name: "Stacks^Stacks",
             done() { return player.points.gte(9.99e18)},
             tooltip: "Gain 9.99e18 Fragments.<br>Rewards:Fragments now make Memory softcap starts later.",
+        },
+        31: {
+            name: "Other Angles",
+            done() { return player.kou.unlocked&&player.lethe.unlocked},
+            tooltip: "Unlock Both Red And Forgotten Layers.<br>Rewards:They behave as they are unlocked first(Currently no, remind me later).",
+        },
+        32: {
+            name: "Finally I Get Rid Of You!",
+            done() { return hasMilestone('kou',2)&&hasMilestone('lethe',2)},
+            tooltip: "Reach R&F's 3rd milestone.<br>Rewards:Keep Directly Transfer when L or D reset, and Fragment Sympathy will always give back its cost.",
+        },
+        33: {
+            name: "Plenty of them.",
+            done() { return player.light.points.gte(200)&&player.dark.points.gte(200)},
+            tooltip: "Have more than 200 on both Light Tachyons&Dark Matters.<br>Rewards:Their effects increase based on their own reset time.",
+        },
+        34: {
+            name: "Introducing: The AutoMate™",
+            done() { return hasMilestone('kou',4)&&hasMilestone('lethe',4)},
+            tooltip: "Reach R&F's 5th milestone.<br>Rewards:Unlock L&D's Autobuyer.",
+        },
+        35: {
+            name: "Plenty*1.5 of them.",
+            done() { return player.light.points.gte(300)&&player.dark.points.gte(300)},
+            tooltip: "Have more than 300 on both Light Tachyons&Dark Matters.<br>Rewards:L's effect boosts R's gain, D's effect boosts F's gain.",
         },
     },
     tabFormat: [
@@ -862,26 +965,25 @@ addLayer("ab", {
 	clickables: {
 		//rows: 6,
 		//cols: 4,
-		/*11: {
+		11: {
 			title: "Light Tachyons",
 			display(){
-				return hasMilestone("light", 2)?(player.light.auto?"On":"Off"):"Locked"
+				return hasAchievement('a',34)?(player.light.auto?"On":"Off"):"Locked"
 			},
-			unlocked() { return player.light.layerShown&&hasAchievement('a',21) },
-			canClick() { return hasMilestone("light", 2) },
+			unlocked() { return tmp["light"].layerShown&&hasAchievement('a',34) },
+			canClick() { return hasAchievement('a',34) },
 			onClick() { player.light.auto = !player.light.auto },
 			style: {"background-color"() { return player.light.auto?"#ededed":"#666666" }},
 		    },
         12: {
 			title: "Dark Matters",
 			display(){
-				return hasMilestone("dark", 2)?(player.dark.auto?"On":"Off"):"Locked"
+				return hasAchievement('a',34)?(player.dark.auto?"On":"Off"):"Locked"
 			},
-			unlocked() { return player.dark.layerShown&&hasAchievement('a',21) },
-			canClick() { return hasMilestone("light", 2) },
+			unlocked() { return tmp["dark"].layerShown&&hasAchievement('a',34) },
+			canClick() { return hasAchievement('a',34) },
 			onClick() { player.dark.auto = !player.dark.auto },
 			style: {"background-color"() { return player.dark.auto?"#383838":"#666666" }},
-		    },*/
-	        },
-        }
-)
+		    },
+	},
+})
