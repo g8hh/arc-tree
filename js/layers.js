@@ -43,6 +43,7 @@ addLayer("mem", {
     directMult(){
         let eff=new Decimal(1);
         if (hasAchievement('a',15)) eff=eff.times(1.5);
+        if (player.lethe.unlocked) eff=eff.times(tmp.lethe.effect);
         return eff;
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -463,6 +464,7 @@ addLayer("dark", {
         let keep=[];
         if (layers[resettingLayer].row > this.row) layerDataReset('dark', keep);
         if (player.tab=='dark'&&(!hasUpgrade('dark', 23)&&!hasMilestone('dark',0))) showTab('none');
+        if (hasMilestone('lethe',0)&&(resettingLayer=='kou'||resettingLayer=='lethe')) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
     },
     canBuyMax() { return hasUpgrade('dark', 22) },
 
@@ -675,6 +677,8 @@ addLayer("lethe", {
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
+        best: new Decimal(0),
+        total: new Decimal(0),
         unlockOrder(){return 0},
     }},
     color: "#fee85d",
@@ -698,6 +702,16 @@ addLayer("lethe", {
     },
     row: 2, // Row the layer is in on the tree (0 is the first row)
     displayRow: 0,
+
+    milestones: {
+        0: {
+            requirementDescription: "1 Forgotten Drops",
+            done() { return player.lethe.best.gte(1)},
+            unlocked(){return player.lethe.unlocked},
+            effectDescription: "Keep first two Milestones and More Darkness upgrades of Dark Matter layers when R or F reset.",
+        },
+    },
+
     hotkeys: [
         {key: "r", description: "F: Reset for Forgotten Drops", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
@@ -708,8 +722,14 @@ addLayer("lethe", {
         return base;
     },
     effect(){
+        if (player[this.layer].points.lte(0)) return new Decimal(1);
+        let eff = player[this.layer].points.plus(1).pow(2).log10().plus(1);
+        return eff;
     },
-    effectDescription() {},
+    effectDescription() 
+    {
+        return "which are directly boosting Fragments generation and Memories gain by "+format(tmp.lethe.effect)+"x"
+    },
     upgrades:{
     }
 })
@@ -796,7 +816,7 @@ addLayer("a", {
         23: {
             name: "Now You Are Useless.",
             done() { return hasAchievement('a',22)&&hasUpgrade('mem',34)},
-            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you brought Conclusion, it makes your Memory softcap start later but reduces based on your Time since Memory Reset.",
+            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you brought Conclusion, it makes your Memory softcap start later but effect reduces based on your Time since Memory Reset.",
         },
         24: {
             name: "Eternal Core^2",
@@ -806,7 +826,7 @@ addLayer("a", {
         25: {
             name: "Stacks^Stacks",
             done() { return player.points.gte(9.99e18)},
-            tooltip: "Gain 9.99e18 Fragments.<br>Rewards:Fragments now make Memory softcap later.",
+            tooltip: "Gain 9.99e18 Fragments.<br>Rewards:Fragments now make Memory softcap starts later.",
         },
     },
     tabFormat: [
