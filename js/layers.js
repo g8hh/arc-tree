@@ -277,7 +277,7 @@ addLayer("light", {
         let keep=[];
         if (layers[resettingLayer].row > this.row) layerDataReset('light', keep);
         if (player.tab=='light'&&(!hasUpgrade('dark', 23)&&!hasMilestone('light',0))) showTab('none');
-        if (hasMilestone('kou',0)) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
+        if (hasMilestone('kou',0)&&(resettingLayer=='kou'||resettingLayer=='lethe')) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
     },
     canBuyMax() { return hasUpgrade('light', 22) },
 
@@ -331,7 +331,7 @@ addLayer("light", {
         },
         22:{ title: "More Brightness",
         description: "You can buy max Light Tachyons And lower Memories requirement for further Light Tachyons",
-        unlocked() { return hasUpgrade("light", 21) },
+        unlocked() { return hasUpgrade("light", 21)||hasMilestone('kou',0) },
         cost: new Decimal(15),
         },
         23:{ title: "Fragment Sympathy",
@@ -646,6 +646,7 @@ addLayer("kou", {
             buttonStyle() { return {'background-color': '#bd003c'} },
             content: [
                 "main-display",
+                "blank",
                 "prestige-button",
                 "blank",
                 ["display-text",
