@@ -713,7 +713,7 @@ addLayer("lethe", {
     },
 
     hotkeys: [
-        {key: "r", description: "F: Reset for Forgotten Drops", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+        {key: "f", description: "F: Reset for Forgotten Drops", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return hasAchievement('a',21)},
 
