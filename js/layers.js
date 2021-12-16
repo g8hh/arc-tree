@@ -18,13 +18,15 @@ addLayer("mem", {
         let sc = new Decimal("1e10");
         if (hasUpgrade('dark',21)) sc=sc.times(50);
         if (hasUpgrade('dark',32)) sc=sc.times(upgradeEffect('dark', 32));
-        if (hasUpgrade('dark',34)&&hasAchievement('a',23))sc = sc.times((100-sqrt(player.mem.resetTime)<2)?2:100-sqrt(player.mem.resetTime));
+        if (hasUpgrade('mem',34)&&hasAchievement('a',23))sc = sc.times((50-Math.sqrt(player.mem.resetTime)<5)?5:50-Math.sqrt(player.mem.resetTime));
+        if (hasMilestone('dark',2))sc = sc.times(tmp.dark.effect);
         return sc;
     },
     softcapPower() {
         let scp = 0.25;
         if (hasUpgrade('light',21)) scp = 0.33;
         if (hasUpgrade('light',32)) scp = 0.40;
+        if (hasMilestone('light',2)) scp = scp + 0.02;
         return scp;
     },
     gainMult() { // Calculate the multiplier for main currency from bonuses
@@ -55,15 +57,16 @@ addLayer("mem", {
     layerShown(){return true},
     passiveGeneration() { 
         let pg = 0;
-        if (hasMilestone('light',2)) pg=pg+0.05;
-        if (hasMilestone('dark',2)) pg=pg+0.05;
+        if (hasMilestone('light',3)) pg=pg+0.05;
+        if (hasMilestone('dark',3)) pg=pg+0.05;
+        return pg;
      },
     doReset(resettingLayer){
         let keep=[];
         //let dark23=[34];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
-        if (hasMilestone('light',1)) player[this.layer].upgrades.push([11,12,13,14,21,22,23,24]);
-        if (hasMilestone('dark',1)) player[this.layer].upgrades.push([31,32]);
+        if (hasMilestone('light',1)) player[this.layer].upgrades = player[this.layer].upgrades.concat([11,12,13,14,21,22,23,24]);
+        if (hasMilestone('dark',1)) player[this.layer].upgrades = player[this.layer].upgrades.concat([31,32]);
         if (hasUpgrade('dark', 23)&&(resettingLayer=="light"||resettingLayer=="dark")) player[this.layer].upgrades.push(34);
         if (hasAchievement('a',21)) player[this.layer].upgrades.push(41);
         if (hasAchievement("a", 13)&&player[this.layer].points.eq(0)) player[this.layer].points=new Decimal(5);
@@ -82,7 +85,7 @@ addLayer("mem", {
         12:{ title: "Memory Extraction",
         description: "Memories gain is boosted by Memories.",
         cost: new Decimal(3),
-        unlocked() { return hasUpgrade("mem", 11) },
+        unlocked() { return hasUpgrade("mem", 11)||hasMilestone('light',1) },
         effect() {
             let eff=player[this.layer].points.add(1).pow(0.25);
             if (hasUpgrade('mem', 32)) eff=eff.pow(1.25);
@@ -92,7 +95,7 @@ addLayer("mem", {
         13:{ title: "Algorithm Managing",
         description: "Lower Fragments requirement for further Memories",
         cost: new Decimal(10),
-        unlocked() { return hasUpgrade("mem", 12) },
+        unlocked() { return hasUpgrade("mem", 12)||hasMilestone('light',1) },
         effect() {
             let eff=new Decimal(1.25);
             if (hasUpgrade('mem', 23)) eff=eff.pow(upgradeEffect('mem', 23));
@@ -102,7 +105,7 @@ addLayer("mem", {
         14:{ title: "Fragments Duplication",
         description: "Fragments generation is boosted by Fragments",
         cost: new Decimal(20),
-        unlocked() { return hasUpgrade("mem", 13) },
+        unlocked() { return hasUpgrade("mem", 13)||hasMilestone('light',1) },
         effect() {
             return player.points.plus(1).log10().pow(0.75).plus(1)
         }
@@ -110,7 +113,7 @@ addLayer("mem", {
         21:{ title: "Thought Combination",
         description: "Thought Collect is much faster",
         cost: new Decimal(30),
-        unlocked() { return hasUpgrade("mem", 14) },
+        unlocked() { return hasUpgrade("mem", 14)||hasMilestone('light',1)},
         effect() {
             let eff= new Decimal(2);
             if (hasUpgrade('mem', 31)) eff=eff.pow(upgradeEffect('mem', 31));
@@ -120,7 +123,7 @@ addLayer("mem", {
         22:{ title: "Fragments Prediction",
         description: "Fragments generation is boosted by Memories",
         cost: new Decimal(50),
-        unlocked() { return hasUpgrade("mem", 21) },
+        unlocked() { return hasUpgrade("mem", 21)||hasMilestone('light',1) },
         effect() {
             return player[this.layer].points.add(1).pow(0.5)
         }
@@ -128,7 +131,7 @@ addLayer("mem", {
         23:{ title: "Time Boosting",
         description: "Algorithm Managing is effected by Fragments.",
         cost: new Decimal(100),
-        unlocked() { return hasUpgrade("mem", 22) },
+        unlocked() { return hasUpgrade("mem", 22)||hasMilestone('light',1) },
         effect() {
             return player.points.plus(1).times(1.5).log10().log10(2).pow(0.01).plus(1)
         }
@@ -136,7 +139,7 @@ addLayer("mem", {
         24:{ title: "Directly Drown",
         description: "Memories gain is boosted by Fragments.",
         cost: new Decimal(1000),
-        unlocked() { return hasUpgrade("mem", 23) },
+        unlocked() { return hasUpgrade("mem", 23)||hasMilestone('light',1) },
         effect() {
             return player.points.pow(0.05).plus(1).log10().plus(2).log10(5).plus(1);
         }
@@ -144,7 +147,7 @@ addLayer("mem", {
         31:{ title: "Thought Growth",
         description: "Thought Combination is boosted by Memories",
         cost: new Decimal(20000),
-        unlocked() { return hasUpgrade("mem", 24) },
+        unlocked() { return hasUpgrade("mem", 24)||hasMilestone('dark',1) },
         effect() {
             return player[this.layer].points.plus(1).log10().pow(0.5).log10(2);
         },
@@ -152,12 +155,12 @@ addLayer("mem", {
         32:{ title: "Memory Inflation",
         description: "Memory Extraction is much faster.",
         cost: new Decimal(50000),
-        unlocked() { return hasUpgrade("mem", 31) },
+        unlocked() { return hasUpgrade("mem", 31)||hasMilestone('dark',1) },
         },
         33:{ title: "Directly Transfer",
         description: "Memories gain is massively boosted, but with Fragments gain massively decreased and Fragments&Memories set to 1.",
         cost: new Decimal(1000000),
-        unlocked() { return hasUpgrade("mem", 32) },
+        unlocked() { return hasUpgrade("mem", 32)},
         effect() {//Mem, not Frag
             let eff = new Decimal(1.5);
             if (hasUpgrade("light", 33)) eff=eff.add(upgradeEffect('light', 33))
@@ -172,7 +175,10 @@ addLayer("mem", {
         onPurchase(){player.points=new Decimal(1);player[this.layer].points = new Decimal(1);},
         },
         41:{ title: "Build Up The Core.",
-        fullDisplay(){return "<b>Build Up The Core.</b></br>Unlock two new layers, but sacrifice all your progresses.</br></br>Cost:1e23 Memories</br>65 Light Tachyons</br>65 Dark Matters"},
+        fullDisplay(){
+            if(hasAchievement('a',21)) return "<b>Eternal Core</b></br>A core build up by massive Memories and a little Lights&Darks, which contains nearly endless energy.";
+            return "<b>Build Up The Core.</b></br>Unlock two new layers, but sacrifice all your progresses.</br></br>Cost:1e23 Memories</br>65 Light Tachyons</br>65 Dark Matters"
+        },
         description: "Unlock two new layers, but sacrifice all your progresses.",
         canAfford(){return player[this.layer].points.gte(1e23)&&player.dark.points.gte(65)&&player.light.points.gte(65)},
         pay(){
@@ -182,7 +188,7 @@ addLayer("mem", {
         },
         unlocked() { return ( (hasUpgrade("dark", 34)&&hasUpgrade("light",34)&&player.dark.points.gte(60)&&player.light.points.gte(60)) || hasAchievement('a',21))},
         style(){return {'height':'200px', 'width':'200px'}},
-        onPurchase(){doReset('kou',true);player[this.layer].upgrades=[41];},
+        onPurchase(){doReset('kou',true);showTab('none');player[this.layer].upgrades=[41];},
         },
     }
 })
@@ -250,6 +256,12 @@ addLayer("light", {
         2: {
             requirementDescription: "15 Light Tachyons",
             done() { return player.light.best.gte(15)&&hasAchievement('a',21)},
+            unlocked(){return hasAchievement('a',21)},
+            effectDescription: "Make Memories gain After softcap's exponent +0.02.",
+        },
+        3: {
+            requirementDescription: "30 Light Tachyons",
+            done() { return player.light.best.gte(30)&&hasAchievement('a',21)},
             unlocked(){return hasAchievement('a',21)},
             effectDescription: "Gain 5% of Memories gain every second.",
         },
@@ -423,6 +435,12 @@ addLayer("dark", {
             requirementDescription: "15 Dark Matters",
             done() { return player.dark.best.gte(15)&&hasAchievement('a',21)},
             unlocked(){return hasAchievement('a',21)},
+            effectDescription: "Dark Matters' affection now also makes Memory softcap starts later.",
+        },
+        3: {
+            requirementDescription: "30 Dark Matters",
+            done() { return player.dark.best.gte(30)&&hasAchievement('a',21)},
+            unlocked(){return hasAchievement('a',21)},
             effectDescription: "Gain 5% of Memories gain every second.",
         },
     },
@@ -493,7 +511,7 @@ addLayer("dark", {
         23:{ title: "Force Operation",
         description: "Keep Conclusion upgrade when L or D reset.",
         unlocked() { return hasUpgrade("dark", 22)&&hasUpgrade("light", 21) },
-        onPurchase(){if (hasAchievement('a',22)) player[this.layer].points = player[this.layer].points.plus(25);},
+        onPurchase(){if (hasAchievement('a',22)) player[this.layer].points = player[this.layer].points.plus(25);player[this.layer].upgrades.push(34)},
         cost: new Decimal(25),
         },
         24:{ title: "Calm in Warth",
@@ -549,7 +567,7 @@ addLayer("kou", {
         unlockOrder(){return 0},
     }},
     color: "#f0adac",
-    requires(){return new Decimal(1e25)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(1e30)}, // Can be a function that takes requirement increases into account
     resource: "Red dolls", // Name of prestige currency
     baseResource: "Memories", // Name of resource prestige is based on
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
@@ -597,8 +615,8 @@ addLayer("lethe", {
     color: "#fee85d",
     requires(){return new Decimal(1e18)}, // Can be a function that takes requirement increases into account
     resource: "Forgotten Drops", // Name of prestige currency
-    baseResource: "Fragment", // Name of resource prestige is based on
-    baseAmount() {return player.mem.points}, // Get the current amount of baseResource
+    baseResource: "Fragments", // Name of resource prestige is based on
+    baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     branches: ["dark"],
     exponent() {
@@ -713,7 +731,7 @@ addLayer("a", {
         23: {
             name: "Now You Are Useless.",
             done() { return hasAchievement('a',22)&&hasUpgrade('mem',34)},
-            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you brought Conclusion, it makes your softcap start later based on your Time since Memory Reset.",
+            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you brought Conclusion, it makes your Memory softcap start later but reduces based on your Time since Memory Reset.",
         },
     },
     tabFormat: [
@@ -732,28 +750,29 @@ addLayer("ab", {
 	row: "side",
 	layerShown() { return hasAchievement('a',21) },
 	tooltip: "Autobuyers",
-	clickables: {/* 
+	clickables: {
 		//rows: 6,
 		//cols: 4,
-		11: {
+		11: {/*
 			title: "Light Tachyons",
 			display(){
-				return hasMilestone("light", 1)?(player.light.auto?"On":"Off"):"Locked"
+				return hasMilestone("light", 2)?(player.light.auto?"On":"Off"):"Locked"
 			},
 			unlocked() { return player.light.layerShown&&hasAchievement('a',21) },
-			canClick() { return hasMilestone("light", 1) },
+			canClick() { return hasMilestone("light", 2) },
 			onClick() { player.light.auto = !player.light.auto },
 			style: {"background-color"() { return player.light.auto?"#ededed":"#666666" }},
-		},
+		    },
         12: {
 			title: "Dark Matters",
 			display(){
-				return hasMilestone("dark", 1)?(player.dark.auto?"On":"Off"):"Locked"
+				return hasMilestone("dark", 2)?(player.dark.auto?"On":"Off"):"Locked"
 			},
 			unlocked() { return player.dark.layerShown&&hasAchievement('a',21) },
-			canClick() { return hasMilestone("light", 1) },
-			onClick() { player.light.auto = !player.dark.auto },
+			canClick() { return hasMilestone("light", 2) },
+			onClick() { player.dark.auto = !player.dark.auto },
 			style: {"background-color"() { return player.dark.auto?"#383838":"#666666" }},
-		},*/
-	},
+		    },*/
+	        },
+        }
 })
