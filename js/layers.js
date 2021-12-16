@@ -578,6 +578,8 @@ addLayer("kou", {
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
+        best:new Decimal(0),
+        total:new Decimal(0),
         unlockOrder(){return 0},
     }},
     color: "#ffa0be",
@@ -637,6 +639,13 @@ addLayer("kou", {
                 "blank",
                 ["display-text",
                     function() {return 'You have ' + formatWhole(player.mem.points)+' Memories.'},
+                        {}],
+                "blank",
+                ["display-text",
+                    function() {return 'Your best Red Dolls is ' + formatWhole(player.kou.best)},
+                        {}],
+                ["display-text",
+                    function() {return 'You have made a total of ' + formatWhole(player.kou.total) + ' Red Dolls'},
                         {}],
                 "blank",
                 "milestones",]
