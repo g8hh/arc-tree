@@ -64,7 +64,6 @@ addLayer("mem", {
      },
     doReset(resettingLayer){
         let keep=[];
-        //let dark23=[34];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
         if (hasMilestone('light',1)) player[this.layer].upgrades = player[this.layer].upgrades.concat([11,12,13,14,21,22,23,24]);
         if (hasMilestone('dark',1)) player[this.layer].upgrades = player[this.layer].upgrades.concat([31,32]);
@@ -277,6 +276,7 @@ addLayer("light", {
 
     doReset(resettingLayer){
         let keep=[];
+        if (hasAchievement('a',34)) keep.push("auto");
         if (layers[resettingLayer].row > this.row) layerDataReset('light', keep);
         if (player.tab=='light'&&(!hasUpgrade('dark', 23)&&!hasMilestone('light',0))) showTab('none');
         if (hasMilestone('kou',0)&&(resettingLayer=='kou'||resettingLayer=='lethe')) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
@@ -472,6 +472,7 @@ addLayer("dark", {
 
     doReset(resettingLayer){
         let keep=[];
+        if (hasAchievement('a',34)) keep.push("auto");
         if (layers[resettingLayer].row > this.row) layerDataReset('dark', keep);
         if (player.tab=='dark'&&(!hasUpgrade('dark', 23)&&!hasMilestone('dark',0))) showTab('none');
         if (hasMilestone('lethe',0)&&(resettingLayer=='kou'||resettingLayer=='lethe')) {player[this.layer].upgrades.push(22);player[this.layer].milestones = player[this.layer].milestones.concat([0,1])};
