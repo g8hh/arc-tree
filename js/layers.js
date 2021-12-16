@@ -6,7 +6,6 @@ addLayer("mem", {
         unlocked: true,
 		points: new Decimal(0),
     }},
-    unlockOrder(){return (hasAchievement('a',14)?0:player[this.layer].unlockOrder);},
     color: "#c939db",
     requires: new Decimal(15), // Can be a function that takes requirement increases into account
     resource: "Memories", // Name of prestige currency
@@ -391,6 +390,7 @@ addLayer("dark", {
         unlockOrder:0,
         auto: false,
     }},
+    unlockOrder(){return (hasAchievement('a',14)?0:player[this.layer].unlockOrder);},
     color: "#383838",
     requires(){return new Decimal(9999).times((player.dark.unlockOrder&&!player.dark.unlocked)?5:1)}, // Can be a function that takes requirement increases into account
     resource: "Dark Matters", // Name of prestige currency
