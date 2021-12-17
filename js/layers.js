@@ -602,7 +602,7 @@ addLayer("kou", {
         unlockOrder:0,
     }},
     color: "#ffa0be",
-    requires(){return new Decimal(1e30)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(1e30).times((player.kou.unlockOrder&&!player.kou.unlocked)?15:1)}, // Can be a function that takes requirement increases into account
     resource: "Red Dolls", // Name of prestige currency
     baseResource: "Memories", // Name of resource prestige is based on
     baseAmount() {return player.mem.points}, // Get the current amount of baseResource
@@ -641,6 +641,7 @@ addLayer("kou", {
         {key: "r", description: "R: Reset for Red dolls", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
     ],
     layerShown(){return hasAchievement('a',21)},
+    increaseUnlockOrder: ["lethe"],
 
     milestones: {
         0: {
@@ -684,6 +685,12 @@ addLayer("kou", {
             done() { return player.kou.best.gte(15)},
             unlocked(){return player.kou.unlocked},
             effectDescription: "Light Tachyon layer resets nothing.",
+        },
+        7: {
+            requirementDescription: "20 Red Dolls",
+            done() { return player.kou.best.gte(20)},
+            unlocked(){return hasMilestone('kou',6)},
+            effectDescription: "Unlock Happiness Challenges.",
         },
     },
 
@@ -737,7 +744,7 @@ addLayer("lethe", {
         unlockOrder:0,
     }},
     color: "#fee85d",
-    requires(){return new Decimal(2e20)}, // Can be a function that takes requirement increases into account
+    requires(){return new Decimal(2e20).times((player.lethe.unlockOrder&&!player.lethe.unlocked)?5e4:1)}, // Can be a function that takes requirement increases into account
     resource: "Forgotten Drops", // Name of prestige currency
     baseResource: "Fragments", // Name of resource prestige is based on
     baseAmount() {return player.points}, // Get the current amount of baseResource
@@ -759,6 +766,7 @@ addLayer("lethe", {
     },
     row: 2, // Row the layer is in on the tree (0 is the first row)
     displayRow: 0,
+    increaseUnlockOrder: ["kou"],
 
     milestones: {
         0: {
@@ -802,6 +810,12 @@ addLayer("lethe", {
             done() { return player.lethe.best.gte(50000000)},
             unlocked(){return player.lethe.unlocked},
             effectDescription: "Dark Matter layer resets nothing.",
+        },
+        7: {
+            requirementDescription: "1e12 Forgotten Drops",
+            done() { return player.lethe.best.gte(1e12)},
+            unlocked(){return hasMilestone('lethe',6)},
+            effectDescription: "Unlock Scythes.",
         },
     },
 
@@ -909,7 +923,7 @@ addLayer("a", {
         23: {
             name: "Now You Are Useless.",
             done() { return hasAchievement('a',22)&&hasUpgrade('mem',34)},
-            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you buy Conclusion, it makes your Memory softcap start later but effect reduces based on your Time since Memory Reset.",
+            tooltip: "Buy Conclusion When it is useless.<br>Rewards:When you buy Conclusion, it makes your Memory softcap start later but effect decreases based on your Time since Memory Reset.",
         },
         24: {
             name: "Eternal Core^2",
@@ -924,7 +938,7 @@ addLayer("a", {
         31: {
             name: "Other Angles",
             done() { return player.kou.unlocked&&player.lethe.unlocked},
-            tooltip: "Unlock Both Red And Forgotten Layers.<br>Rewards:They behave as they are unlocked first(Currently no, remind me later).",
+            tooltip: "Unlock Both Red And Forgotten Layers.<br>Rewards:They behave as they are unlocked first.",
         },
         32: {
             name: "Finally I Get Rid Of You!",
