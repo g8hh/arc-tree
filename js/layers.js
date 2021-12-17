@@ -715,7 +715,7 @@ addLayer("kou", {
                 "milestones",]
         },
         "Happiness Challenges": {
-            unlocked() { return true },
+            unlocked() { return hasMilestone('kou',7) },
             buttonStyle() { return {'background-color': '#bd003c'} },
             content: [
                 "main-display",
