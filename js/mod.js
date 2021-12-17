@@ -58,10 +58,12 @@ function getPointGen() {
 	if (hasUpgrade('mem', 22)) gain = gain.times(upgradeEffect('mem', 22))	
 	if (player.light.unlocked) gain = gain.times(tmp.light.effect);
 	if (player.lethe.unlocked) gain = gain.times(tmp.lethe.effect);
+	if (player.lethe.buyables[11].unlocked) gain = gian.times(tmp.lethe.buyables[11].effect);
 	
 	//POW
 	if (hasUpgrade('dark', 12))gain = gain.times(tmp.dark.effect.pow(0.5));
 	if (hasUpgrade('mem', 33)&& !hasMilestone('kou',2)) gain = gain.pow(hasUpgrade('light', 23)?0.75:0.5);
+	if (inChallenge("kou",11)) gain = gain.pow(0.75);
 
 	if (hasUpgrade('dark', 11)&&player.points.lt(upgradeEffect('dark',11))) gain = gain.times(2);
         return gain

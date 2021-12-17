@@ -27,6 +27,7 @@ addLayer("mem", {
         if (hasUpgrade('light',21)) scp = 0.33;
         if (hasUpgrade('light',32)) scp = 0.40;
         if (hasMilestone('light',2)) scp = scp + 0.02;
+        if (hasUpgrade('lethe',33)) scp = scp + 0.08;
         return scp;
     },
     gainMult() { // Calculate the multiplier for main currency from bonuses
@@ -37,6 +38,7 @@ addLayer("mem", {
         if (hasUpgrade('mem', 34)&&!hasAchievement('a',22)) mult = mult.times(!hasUpgrade('light', 11)?0.85:upgradeEffect('light', 11))
         if (player.dark.unlocked) mult = mult.times(tmp.dark.effect);
         if (hasUpgrade('light', 12)) mult=mult.times(tmp.light.effect.div(2).gt(1)?tmp.light.effect.div(2):1);
+        if (inChallenge("kou",11)) mult = mult.pow(0.75);
         return mult
     },
     directMult(){
@@ -60,6 +62,7 @@ addLayer("mem", {
         let pg = 0;
         if (hasMilestone('light',3)) pg=pg+0.05;
         if (hasMilestone('dark',3)) pg=pg+0.05;
+        if (hasUpgrade('lethe',33)) pg=pg+0.2;
         return pg;
      },
     doReset(resettingLayer){
@@ -236,6 +239,7 @@ addLayer("light", {
     directMult(){
         let dm=new Decimal(1);
         if (player.kou.unlocked) dm=dm.times(tmp.kou.effect);
+        if (inChallenge("kou",11)) dm = dm.times(1.5);
         return dm;
     },
     row: 1, // Row the layer is in on the tree (0 is the first row)
@@ -297,6 +301,7 @@ addLayer("light", {
         let eff=Decimal.times(tmp.light.effectBase,player.light.points.plus(1));
         if (hasUpgrade('light',31)) eff=eff.times(player[this.layer].points.sqrt());
         if (hasAchievement('a',33)) eff=eff.times(Decimal.log10(player[this.layer].resetTime+1).plus(1));
+        if (hasChallenge("kou", 11)) eff=eff.times(player.points.plus(1).log(10).plus(1).sqrt());
         if (eff.lt(1)) return 1;
         return eff;
     },
@@ -431,6 +436,7 @@ addLayer("dark", {
     directMult(){
         let dm=new Decimal(1);
         if (player.kou.unlocked) dm=dm.times(tmp.kou.effect);
+        if (inChallenge("kou",11)) dm = dm.times(1.5);
         return dm;
     },
 
@@ -493,6 +499,7 @@ addLayer("dark", {
         let eff=Decimal.pow(player[this.layer].points.plus(1).log10().plus(1),tmp.dark.effectBase);
         if (hasUpgrade('dark', 31)) eff = Decimal.pow(player[this.layer].points.plus(1).times(2).sqrt().plus(1),tmp.dark.effectBase);
         if (hasAchievement('a',33)) eff=eff.times(Decimal.log10(player[this.layer].resetTime+1).plus(1));
+        if (hasChallenge("kou", 11)) eff=eff.times(player.points.plus(1).log(10).plus(1).sqrt());
         if (eff.lt(1)) return new Decimal(1);
         return eff;
     },
@@ -715,7 +722,7 @@ addLayer("kou", {
                 "milestones",]
         },
         "Happiness Challenges": {
-            unlocked() { return true },
+            unlocked() { return hasMilestone('kou',7) },
             buttonStyle() { return {'background-color': '#bd003c'} },
             content: [
                 "main-display",
@@ -725,11 +732,23 @@ addLayer("kou", {
                 ["display-text",
                     function() {return 'You have ' + formatWhole(player.mem.points)+' Memories.'},
                         {}],
-                "blank",]
+                "blank","challenges"]
         },
     },
     upgrades:{
-    }
+    },
+    challenges:{
+        11:{
+            name: "Broken Toyhouse",
+            completionLimit: 1,
+            challengeDescription: "Light Tachyon & Dark Matter gain x1.5, but with Fragment & Memory gain ^0.75.",
+            unlocked() { return hasMilestone('kou',7)},
+            goal() { return new Decimal(1e23) },
+            currencyDisplayName: "Fragments",
+            currencyInternalName: "points",
+            rewardDescription: "Fragments will improve Light Tachyon & Dark Matter's effect.",
+        },
+    },
 })
 
 addLayer("lethe", {
@@ -742,6 +761,7 @@ addLayer("lethe", {
         best: new Decimal(0),
         total: new Decimal(0),
         unlockOrder:0,
+        nodeSlots:0,//Yes, this can be reseted
     }},
     color: "#fee85d",
     requires(){return new Decimal(2e20).times((player.lethe.unlockOrder&&!player.lethe.unlocked)?5e4:1)}, // Can be a function that takes requirement increases into account
@@ -812,10 +832,110 @@ addLayer("lethe", {
             effectDescription: "Dark Matter layer resets nothing.",
         },
         7: {
-            requirementDescription: "1e12 Forgotten Drops",
-            done() { return player.lethe.best.gte(1e12)},
+            requirementDescription: "1e11 Forgotten Drops",
+            done() { return player.lethe.best.gte(1e11)},
             unlocked(){return hasMilestone('lethe',6)},
             effectDescription: "Unlock Scythes.",
+        },
+    },
+
+    
+		buyables: {
+			rows: 1,
+			cols: 1,
+			11: {
+				title: "Guiding Scythes",
+				cost(x=player[this.layer].buyables[this.id]) {
+					return {
+						fo: new Decimal(1e11).times(Decimal.pow(1000,x)),
+					};
+				},
+				effect() { return Decimal.pow(2,player[this.layer].buyables[this.id]) },
+				display() { // Everything else displayed in the buyable button after the title
+                    let data = tmp[this.layer].buyables[this.id];
+					let cost = data.cost;
+					let amt = player[this.layer].buyables[this.id];
+                    let display = formatWhole(player.lethe.points)+" / "+formatWhole(cost.fo)+" Forgotten Drops"+"<br><br>Level: "+formatWhole(amt)+"<br><br>Reward: Fragment generation is boosted by "+formatWhole(data.effect)+"x<br>And you can have "+formatWhole(amt)+" Beacons at most.";
+					return display;
+                },
+                unlocked() { return hasMilestone('lethe',7) }, 
+                canAfford() {
+					if (!tmp[this.layer].buyables[this.id].unlocked) return false;
+					let cost = layers[this.layer].buyables[this.id].cost();
+                    return player[this.layer].unlocked && player.lethe.points.gte(cost.fo);
+				},
+                buy() { 
+					let cost = tmp[this.layer].buyables[this.id].cost;
+					player.lethe.points = player.lethe.points.sub(cost.fo);
+					player.lethe.buyables[this.id] = player.lethe.buyables[this.id].plus(1);
+                },
+                style: {'height':'200px', 'width':'200px'},
+				autoed() { return false },//←currently
+			},
+		},
+    clickables: {
+        rows: 1,
+        cols: 1,
+        11: {
+            title: "Delete all Guiding Beacons",
+            display: "",
+            unlocked() { return player.lethe.unlocked },
+            canClick() { return player.lethe.unlocked && player.lethe.upgrades.length>0 },
+            onClick() { 
+                if (!confirm("Are you sure you want to delete all Beacons? This will force an Forgotten reset!")) return;
+                player.lethe.upgrades = [];
+                doReset("lethe", true);
+            },
+            style: {width: "150px", height: "50px"},
+        },
+    },
+
+
+    tabFormat: {
+        "Milestones": {
+            content: [
+                "main-display",
+                "blank",
+                "prestige-button",
+                "blank",
+                ["display-text",
+                    function() {return 'You have ' + formatWhole(player.points)+' Fragments.'},
+                        {}],
+                "blank",
+                ["display-text",
+                    function() {return 'Your best Forgotten Drops is ' + formatWhole(player.lethe.best)},
+                        {}],
+                ["display-text",
+                    function() {return 'You have made a total of ' + formatWhole(player.lethe.total) + ' Forgotten Drops'},
+                        {}],
+                "blank",
+                "milestones",]
+        },
+        "Scythes": {
+            unlocked() { return hasMilestone('lethe',7) },
+            buttonStyle() { return {'background-color': '#d2ba46',color: "black"} },
+            content: [
+                "main-display",
+                "blank",
+                "prestige-button",
+                "blank",
+                ["display-text",
+                    function() {return 'You have ' + formatWhole(player.points)+' Fragments.'},
+                        {}],
+                "blank",
+                ["display-text",
+                    function() {return 'Your best Forgotten Drops is ' + formatWhole(player.lethe.best)},
+                        {}],
+                ["display-text",
+                    function() {return 'You have made a total of ' + formatWhole(player.lethe.total) + ' Forgotten Drops'},
+                        {}],
+                "blank",
+                ["buyable", 11],
+                "blank",
+                ["clickable", 11],
+                "blank",
+                ["display-text", function() { return "Beacons: "+formatWhole(player.lethe.upgrades.length)+" / "+formatWhole(tmp.lethe.nodeSlots) }], "blank",
+                "upgrades",]
         },
     },
 
@@ -837,7 +957,411 @@ addLayer("lethe", {
     {
         return "which are directly boosting Fragments generation and Memories gain by "+format(tmp.lethe.effect)+"x"
     },
+
+    nodeSlots(){return player.lethe.buyables[11].floor().min(25).toNumber()},
     upgrades:{
+        rows: 5,
+		cols: 5,
+        11: {
+            title() {return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22))?"L":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22))?"<b>L</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        12: {
+            title() {return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23))?"LLR":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23))?"<b>LLR</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        13: {
+            title() {return (hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24))?"LR":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24))?"<b>LR</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        14: {
+            title() {return (hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25))?"LRR":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25))?"<b>LRR</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        15: {
+            title() {return (hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',25)||hasUpgrade('lethe',24))?"R":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',25)||hasUpgrade('lethe',24))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',25)||hasUpgrade('lethe',24))?"<b>R</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        21: {
+            title() {return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32))?"FLL":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32))?"<b>FLL</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        22: {
+            title() {return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33))?"LM":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',11)||hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33))?"<b>LM</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        23: {
+            title() {return (hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34))?"LRM":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',12)||hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34))?"<b>LRM</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        24: {
+            title() {return (hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35))?"RM":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',13)||hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35))?"<b>RM</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        25: {
+            title() {return (hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35))?"DRR":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',14)||hasUpgrade('lethe',15)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35))?"<b>DRR</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        31: {
+            title() {return (hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42))?"FL":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42))?"<b>FL</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        32: {
+            title() {return (hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43))?"FLM":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',21)||hasUpgrade('lethe',22)||hasUpgrade('lethe',23)||hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43))?"<b>FLM</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        33: { //Where we begin
+            title() {return "Memorize"},
+            description() {return "Currently Nothing here."},
+            pay(){
+                player.mem.points = player.mem.points.sub(5e43);
+            },
+            fullDisplay(){
+                return "<b>Memorize</b><br>Make Memories gain After softcap's exponent +0.08.<br><br>Cost: 5e43 Memories";
+            },
+            canAfford() {
+                let a = player.mem.points.gte(5e43);
+				return a && (player.lethe.upgrades.length<tmp.lethe.nodeSlots)
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        34: {
+            title() {return (hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45))?"DRM":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45))?"<b>DRM</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        35: {
+            title() {return (hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45))?"DR":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45))?"<b>DR</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        41: {
+            title() {return (hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52))?"FFL":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52))?"<b>FFL</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        42: {
+            title() {return (hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53))?"FM":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',31)||hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53))?"<b>FM</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        43: {
+            title() {return (hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54))?"FDM":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',32)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54))?"<b>FDM</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        44: {
+            title() {return (hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"DM":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"<b>DM</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        45: {
+            title() {return (hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"DDR"/*Convinced*/:"Unrevealed"},
+            description() {return (hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"<b>DDR</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        51: {
+            title() {return (hasUpgrade('lethe',41)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',42))?"F":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',41)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',42))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',41)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',42))?"<b>F</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        52: {
+            title() {return (hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53))?"FFD":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',41)||hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',51)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53))?"<b>FFD</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        53: {
+            title() {return (hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54))?"FD":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',42)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',52)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54))?"<b>FD</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        54: {
+            title() {return (hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"FDD":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45)||hasUpgrade('lethe',53)||hasUpgrade('lethe',54)||hasUpgrade('lethe',55))?"<b>FDD</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
+        55: {
+            title() {return (hasUpgrade('lethe',54)||hasUpgrade('lethe',55)||hasUpgrade('lethe',45)||hasUpgrade('lethe',44))?"D":"Unrevealed"},
+            description() {return (hasUpgrade('lethe',54)||hasUpgrade('lethe',55)||hasUpgrade('lethe',45)||hasUpgrade('lethe',44))?"Currently Nothing here.":""},
+            pay(){
+                player[this.layer].points = player[this.layer].points.sub(1e20);
+                player.mem.points = player.mem.points.sub(1e100);
+            },
+            fullDisplay(){
+                return (hasUpgrade('lethe',54)||hasUpgrade('lethe',55)||hasUpgrade('lethe',45)||hasUpgrade('lethe',44))?"<b>D</b><br>Currently Nothing here.<br><br>Cost: ":"<b>Unrevealed</b>";
+            },
+            canAfford() {
+                return false
+            },
+            unlocked() { return true },
+            style: {height: '130px', width: '130px'},
+        },
     }
 })
 
@@ -946,7 +1470,7 @@ addLayer("a", {
             tooltip: "Reach R&F's 3rd milestone.<br>Rewards:Keep Directly Transfer when L or D reset, and Fragment Sympathy will always give back its cost.",
         },
         33: {
-            name: "Plenty of them.",
+            name: "Plenty of them",
             done() { return player.light.points.gte(200)&&player.dark.points.gte(200)},
             tooltip: "Have more than 200 on both Light Tachyons&Dark Matters.<br>Rewards:Their effects increase based on their own reset time.",
         },
@@ -960,9 +1484,20 @@ addLayer("a", {
             done() { return player.light.points.gte(300)&&player.dark.points.gte(300)},
             tooltip: "Have more than 300 on both Light Tachyons&Dark Matters.<br>Rewards:L's effect boosts R's gain, D's effect boosts F's gain.",
         },
+        41: {
+            name: "Scepter Of The Soul Guide",
+            done() { return player.lethe.upgrades.length>=1},
+            tooltip: "Buy your first Guiding Beacons.<br>Rewards: Always gain 20% of Memories gain every second.",
+        },
+        42: {
+            name: "Toyhouse",
+            done() { return hasChallenge('kou',11)},
+            tooltip: "Finish Broken Toyhouse challenge.",
+        },
     },
     tabFormat: [
         "blank", 
+        ["display-text", function() { return "When boosts say sth about achievements, usually it relates to the num of achievements you have." }], 
         ["display-text", function() { return "Achievements: "+player.a.achievements.length+"/"+(Object.keys(tmp.a.achievements).length-2) }], 
         "blank", "blank",
         "achievements",
