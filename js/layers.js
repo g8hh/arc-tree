@@ -71,6 +71,18 @@ addLayer("mem", {
         if (hasUpgrade('lethe',33)) pg=pg+0.2;
         return pg;
      },
+
+     tabFormat:
+         ["main-display",
+                "prestige-button",
+                "resource-display",
+                ["display-text",
+				function() {if (hasChallenge('kou',12)) return "Currently, Memory softcap is:"+format(tmp["mem"].softcap)},
+					{}],
+                "blank",
+                "upgrades",
+    ],
+
     doReset(resettingLayer){
         let keep=[];
         if (layers[resettingLayer].row > this.row) layerDataReset("mem", keep);
