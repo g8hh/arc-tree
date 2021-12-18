@@ -785,7 +785,7 @@ addLayer("kou", {
             rewardDescription: "Fragments will improve Light Tachyon & Dark Matter's effect.",
         },
         12:{
-            name: "Cracking softcap",
+            name: "Cracking Softcap",
             completionLimit: 1,
             challengeDescription: "Nothing can make your Memory softcap starts later, but Directgains in L,D and M which are not affected by softcap now x10.",
             unlocked() { return hasChallenge('kou',11)},
@@ -796,7 +796,7 @@ addLayer("kou", {
             rewardDescription: "Memory softcap starts x100 later and Red Dolls effect now also makes it starts later.",
         },
         13:{
-            name: "Naughty bugs",
+            name: "Naughty Bugs",
             completionLimit: 1,
             challengeDescription: "Framents gain^1.05, but L&D increases each other's requirement",
             unlocked() { return hasChallenge('kou',12)},
