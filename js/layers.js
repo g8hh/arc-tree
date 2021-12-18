@@ -1265,7 +1265,7 @@ addLayer("lethe", {
             },
             canAfford() {
                 let around = (hasUpgrade('lethe',23)||hasUpgrade('lethe',24)||hasUpgrade('lethe',25)||hasUpgrade('lethe',33)||hasUpgrade('lethe',34)||hasUpgrade('lethe',35)||hasUpgrade('lethe',43)||hasUpgrade('lethe',44)||hasUpgrade('lethe',45));
-                let price = player.kou.points.sub(30)&&player.mem.points.gte(5e65)&&player.dark.points.gte(620);
+                let price = player.kou.points.gte(30)&&player.mem.points.gte(5e65)&&player.dark.points.gte(620);
                 return around&&price&&(player.lethe.upgrades.length<tmp.lethe.nodeSlots);
             },
             effect(){
