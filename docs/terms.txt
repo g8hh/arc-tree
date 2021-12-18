@@ -1,0 +1,12 @@
+points:Fragments
+
+//row1
+M:Memories
+
+//row2
+L:Light Tachyons
+D:Dark Matters
+
+//row3
+R:Red Dolls
+F:Forgotten Drops
