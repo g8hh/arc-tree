@@ -1723,7 +1723,7 @@ addLayer("a", {
         45: {
             name: "9 isn't a lie!",
             done() { return player.lethe.upgrades.length>=9},
-            tooltip: "Have 9 Beacons.<br>Rewards:Guiding Scythes level boosts Forgotten Drops effect.",
+            tooltip: "Have 9 Guiding Beacons.<br>Rewards:Guiding Scythes level boosts Forgotten Drops effect.",
         },
     },
     tabFormat: [
